@@ -92,6 +92,37 @@ test("integration install/remove preserves modified files", () => {
   assert.ok(fs.existsSync(commandFile));
 });
 
+test("integration install supports Claude Code and Codex repository commands", () => {
+  const root = tempProject();
+  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+
+  const claude = json(run(["--path", root, "integration", "install", "claude-code", "--json"]));
+  assert.equal(claude.integration, "claude-code");
+  assert.ok(fs.existsSync(path.join(root, ".claude/commands/codespec.md")));
+  assert.ok(fs.existsSync(path.join(root, ".claude/commands/codespec-proposal.md")));
+  assert.ok(fs.existsSync(path.join(root, ".claude/skills/codespec/SKILL.md")));
+
+  const codex = json(run(["--path", root, "integration", "install", "codex", "--json"]));
+  assert.equal(codex.integration, "codex");
+  assert.ok(fs.existsSync(path.join(root, ".agents/skills/codespec/SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".agents/skills/codespec-validation/SKILL.md")));
+
+  const list = json(run(["--path", root, "integration", "list", "--json"]));
+  assert.deepEqual(
+    list.integrations.map((integration) => integration.name),
+    ["opencode", "claude-code", "codex"]
+  );
+});
+
+test("init installs all supported integrations by default", () => {
+  const root = tempProject();
+  const result = json(run(["init", root, "--no-codewiki", "--json"]));
+  assert.equal(result.integration.integration, "all");
+  assert.ok(fs.existsSync(path.join(root, ".opencode/command/codespec.md")));
+  assert.ok(fs.existsSync(path.join(root, ".claude/commands/codespec.md")));
+  assert.ok(fs.existsSync(path.join(root, ".agents/skills/codespec/SKILL.md")));
+});
+
 test("validate reports required structure errors", () => {
   const root = tempProject();
   const result = run(["--path", root, "validate", "--json"]);

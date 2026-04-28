@@ -25,7 +25,7 @@ export function initProject(targetPath, options = {}) {
   updateGitignore(root, created, skipped);
 
   let integrationResult = null;
-  const integration = options.integration ?? "opencode";
+  const integration = options.integration ?? "all";
   if (integration !== "none") {
     integrationResult = installIntegration(root, integration, options);
   }
@@ -46,7 +46,7 @@ export function initProject(targetPath, options = {}) {
       ...existingDocs.map((item) => `已存在真实全量文档，请按需执行 codespec sync --force：${item}`)
     ],
     message: `已检查 CodeSpec 项目：${root}`,
-    next: ["codespec start AR202604270001-feature-name", "打开 opencode 后执行 /codespec"]
+    next: ["codespec start AR202604270001-feature-name", "在 opencode、Claude Code 或 Codex 中进入 CodeSpec 命令/技能"]
   };
 }
 

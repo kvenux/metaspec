@@ -151,7 +151,7 @@ function integrationCommand(options, args) {
   }
   if (action === "install") {
     const result = installIntegration(root, name, options);
-    return { ...result, message: `已安装 ${name} 集成。`, items: result.files.map((file) => file.path) };
+    return { ...result, message: result.message || `已安装 ${name} 集成。`, items: result.files.map((file) => file.path) };
   }
   if (action === "remove") return removeIntegration(root, name, options);
   throw new Error(`未知 integration 命令：${action}`);
@@ -210,7 +210,8 @@ function help() {
   codespec doctor
   codespec done [change]
   codespec archive [change] [--force]
-  codespec integration list|install|remove opencode
+  codespec integration list
+  codespec integration install|remove opencode|claude-code|codex|all
   codespec codewiki setup|pull|push|report|mr
   codespec sync
 `;

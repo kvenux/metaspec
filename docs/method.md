@@ -552,7 +552,7 @@ CodeSpec 不把工具状态、平台脚本或 JSON 数据文件作为方法论�
 3. `codespec/guidelines/` 编码、测试、安全和评审规范。
 4. 阶段门确认。
 5. 归档目录 `codespec/changes/archives/`。
-6. Agent 集成入口，例如 opencode 的 `/codespec`。
+6. Agent 集成入口，例如 opencode 的 `/codespec`、Claude Code 的项目命令和 Codex 的仓库技能。
 
 ### 2.3 Tooling Adapters
 
@@ -1211,7 +1211,7 @@ CLI 的职责：
 2. 创建和推进变更状态。
 3. 校验目录和文档链。
 4. 归档完成的变更。
-5. 安装 opencode 集成命令。
+5. 安装 opencode、Claude Code 和 Codex 集成命令或技能。
 6. 同步 CodeWiki 全量 Spec / Design。
 
 CLI 不负责：
@@ -1267,7 +1267,7 @@ CLI 不负责：
 | `--force` | 允许覆盖支持覆盖的文件或强制归档 |
 | `--path <dir>` | 指定目标项目目录 |
 | `--change <name>` | 指定变更目录 |
-| `--integration <name>` | init 时安装集成，默认 `opencode`，`none` 表示跳过 |
+| `--integration <name>` | init 时安装集成，默认 `all`，支持 `opencode` / `claude-code` / `codex` / `all` / `none` |
 | `--script-dir <dir>` | CodeWiki 脚本目录 |
 | `--token <token>` | CodeWiki token |
 | `--project-url <url>` | CodeWiki 或 CodeHub 项目地址 |
@@ -1412,7 +1412,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
 5. 创建 `.codespec-cli/` 运行时目录。
 6. 创建或按 `--force` 更新 `.codespec-cli/config.yaml`。
 7. 更新 `.gitignore`。
-8. 默认安装 `opencode` 集成；`--integration none` 跳过。
+8. 默认安装全部 Agent 集成；`--integration none` 跳过。
 9. 默认进入 CodeWiki token 配置和同步引导；`--no-codewiki` 跳过。
 10. 不复制 `spec.md`、`design.md`、`proposal.md` 等业务内容模板。
 11. 若本地已存在全量 `spec.md` 或 `design.md`，不覆盖并提示手动 `codespec sync`。
@@ -1426,7 +1426,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
   "skipped": [".codespec-cli/config.yaml"],
   "items": ["已补齐：", "  codespec/specs"],
   "message": "已检查 CodeSpec 项目：D:/repo",
-  "next": ["codespec start AR202604270001-feature-name", "打开 opencode 后执行 /codespec"]
+  "next": ["codespec start AR202604270001-feature-name", "在 opencode、Claude Code 或 Codex 中进入 CodeSpec 命令/技能"]
 }
 ```
 
@@ -1511,7 +1511,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
     "objective": "明确业务目标、范围、约束、非目标和验收标准。"
   },
   "nextAction": "open_agent_stage",
-  "next": ["在 opencode 中执行 /codespec"]
+  "next": ["在 Agent 中进入 CodeSpec 命令/技能"]
 }
 ```
 
@@ -1546,7 +1546,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
   "nextStage": {},
   "completed": false,
   "message": "已确认 proposal，进入 Spec 增量设计。",
-  "next": ["继续在 opencode 中执行 /codespec"]
+  "next": ["继续在 Agent 中进入 CodeSpec 命令/技能"]
 }
 ```
 
@@ -1632,29 +1632,34 @@ finding 结构：
 
 ```text
 opencode -> .opencode/command
+claude-code -> .claude/commands + .claude/skills
+codex -> .agents/skills
 ```
 
-### 6.13 `codespec integration install opencode`
+### 6.13 `codespec integration install opencode|claude-code|codex|all`
 
-用途：安装 opencode 命令文件。
+用途：安装 Agent 仓库级命令文件或技能。
 
 行为：
 
-1. 创建 `.opencode/command`。
-2. 复制以下文件：
+1. `opencode` 创建 `.opencode/command`。
+2. `claude-code` 创建 `.claude/commands` 和 `.claude/skills`。
+3. `codex` 创建 `.agents/skills`。
+4. 安装 CodeSpec 主入口和五个阶段入口：
    - `codespec.md`
    - `codespec.proposal.md`
    - `codespec.delta-spec.md`
    - `codespec.delta-design.md`
    - `codespec.tasks.md`
    - `codespec.validation.md`
-3. 写入 `.codespec-cli/manifests/integrations/opencode.json`。
-4. manifest 记录每个文件路径和 sha256。
-5. 不修改 `AGENTS.md`。
+5. 对 Claude Code 和 Codex，阶段入口以 `codespec-*` 技能或命令形式写入。
+6. 写入 `.codespec-cli/manifests/integrations/{name}.json`。
+7. manifest 记录每个文件路径和 sha256。
+8. 不修改 `AGENTS.md`。
 
-### 6.14 `codespec integration remove opencode`
+### 6.14 `codespec integration remove opencode|claude-code|codex|all`
 
-用途：移除由 CLI 生成且未被用户修改的 opencode 命令文件。
+用途：移除由 CLI 生成且未被用户修改的 Agent 集成文件。
 
 规则：
 
@@ -1829,12 +1834,25 @@ CODESPEC_CODEWIKI_SCRIPTS
 | `CODESPEC_SYNC_OVERWRITE_REQUIRED` | 同步会覆盖本地全量文档但未授权 |
 | `CLI_ERROR` | 顶层异常 |
 
-## 9. opencode Agent 集成契约
+## 9. Agent 集成契约
 
 opencode 文件安装到：
 
 ```text
 .opencode/command/
+```
+
+Claude Code 仓库级命令和技能安装到：
+
+```text
+.claude/commands/
+.claude/skills/
+```
+
+Codex 仓库级技能安装到：
+
+```text
+.agents/skills/
 ```
 
 主入口：
@@ -1843,13 +1861,23 @@ opencode 文件安装到：
 /codespec
 ```
 
-阶段入口：
+opencode 阶段入口：
 
 1. `/codespec.proposal`
 2. `/codespec.delta-spec`
 3. `/codespec.delta-design`
 4. `/codespec.tasks`
 5. `/codespec.validation`
+
+Claude Code 阶段入口：
+
+1. `/codespec-proposal`
+2. `/codespec-delta-spec`
+3. `/codespec-delta-design`
+4. `/codespec-tasks`
+5. `/codespec-validation`
+
+Codex 阶段入口以仓库级技能形式提供，可通过技能选择或 `$codespec`、`$codespec-proposal` 等方式调用。
 
 Agent 行为契约：
 
@@ -1907,8 +1935,8 @@ Agent 行为契约：
 - [ ] `codespec validate` 输出上述校验码。
 - [ ] `codespec done` 在 error findings 存在时失败。
 - [ ] `codespec archive` 将变更移动到 `codespec/changes/archives/{date}-{change}`。
-- [ ] `codespec integration install opencode` 安装 6 个命令文件并写 manifest。
-- [ ] `codespec integration remove opencode` 保留被用户修改的文件。
+- [ ] `codespec integration install opencode|claude-code|codex|all` 安装对应命令或技能并写 manifest。
+- [ ] `codespec integration remove opencode|claude-code|codex|all` 保留被用户修改的文件。
 - [ ] `codespec sync` 在缺 token、分支不匹配、覆盖未授权等场景给出明确错误。
 - [ ] 所有检查类命令支持 `--json`。
 

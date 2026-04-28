@@ -52,7 +52,7 @@ templates/
 ```bash
 npm test
 node bin/codespec.js --help
-node bin/codespec.js init ./demo --integration none --no-codewiki
+node bin/codespec.js init ./demo --no-codewiki
 node bin/codespec.js --path ./demo start AR20260428-user-login
 node bin/codespec.js --path ./demo go --json
 ```
@@ -69,8 +69,39 @@ node bin/codespec.js --path ./demo go --json
 | `codespec confirm <stage> [change]` | 确认指定阶段 |
 | `codespec validate [change]` | 校验项目结构和文档链 |
 | `codespec archive [change]` | 归档已完成变更 |
+| `codespec integration list` | 列出支持的 Agent 集成 |
 | `codespec integration install opencode` | 安装 opencode 命令文件 |
+| `codespec integration install claude-code` | 安装 Claude Code 仓库级命令和技能 |
+| `codespec integration install codex` | 安装 Codex 仓库级技能 |
+| `codespec integration install all` | 安装全部 Agent 集成 |
 | `codespec sync` | CodeWiki 同步入口 |
+
+`codespec init` 默认安装全部 Agent 集成；使用 `--integration none` 可跳过，或用 `--integration opencode|claude-code|codex` 只安装一种。
+
+Agent 集成写入位置：
+
+```text
+.opencode/command/
+  codespec.md
+  codespec.proposal.md
+  codespec.delta-spec.md
+  codespec.delta-design.md
+  codespec.tasks.md
+  codespec.validation.md
+.claude/commands/
+  codespec.md
+  codespec-proposal.md
+  codespec-delta-spec.md
+  codespec-delta-design.md
+  codespec-tasks.md
+  codespec-validation.md
+.claude/skills/
+  codespec*/SKILL.md
+.agents/skills/
+  codespec*/SKILL.md
+```
+
+Claude Code 可直接使用 `/codespec`、`/codespec-proposal` 等项目命令；新版本也会发现 `.claude/skills`。Codex 按官方仓库级技能路径发现 `.agents/skills`，在 CLI/IDE 中通过技能选择或 `$codespec` 方式调用。
 
 ## 项目结构
 
