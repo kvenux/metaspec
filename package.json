@@ -1,0 +1,22 @@
+{
+  "name": "@company/codespec-cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CodeSpec methodology, templates, and CLI workflow tools.",
+  "bin": {
+    "codespec": "./bin/codespec.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "docs"
+  ],
+  "license": "UNLICENSED"
+}
