@@ -7,6 +7,7 @@ import { doctor, validateProject } from "./validation.js";
 import { hasError } from "./util.js";
 import { installIntegration, listIntegrations, removeIntegration } from "./integrations.js";
 import { runCodeWikiScript, setupCodeWiki, syncCodeWiki } from "./codewiki.js";
+import { applyLatestRun, generateDocs, generateModule, showLatestRun } from "./runs.js";
 
 export async function main(argv = []) {
   const parsed = parseArgs(argv);
@@ -56,8 +57,17 @@ export async function main(argv = []) {
     case "codewiki":
       result = codewikiCommand(options, args);
       break;
+    case "generate":
+      result = generateCommand(options, args);
+      break;
+    case "show":
+      result = showLatestRun(options);
+      break;
+    case "apply":
+      result = applyLatestRun(options);
+      break;
     case "sync":
-      result = syncCodeWiki(options);
+      result = options.generate ? generateDocs(options) : syncCodeWiki(options);
       break;
     default:
       throw new Error(`未知命令：${command}`);
@@ -165,6 +175,13 @@ function codewikiCommand(options, args) {
   throw new Error(`未知 codewiki 命令：${action}`);
 }
 
+function generateCommand(options, args) {
+  const action = args[0];
+  if (!action) return generateDocs(options);
+  if (action === "module") return generateModule(args[1], options);
+  throw new Error(`未知 generate 命令：${action}`);
+}
+
 function print(result, options) {
   if (typeof result === "string") {
     console.log(result);
@@ -213,6 +230,10 @@ function help() {
   codespec integration list
   codespec integration install|remove opencode|claude-code|codex|all
   codespec codewiki setup|pull|push|report|mr
-  codespec sync
+  codespec generate [--runner auto]
+  codespec generate module <path>
+  codespec show [--json]
+  codespec apply [--force] [--json]
+  codespec sync [--generate]
 `;
 }

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { CONFIG_YAML, DOC_DIRS, RUNTIME_DIRS } from "./constants.js";
 import { ensureDir, rel, resolveRoot, writeFileIfNeeded } from "./util.js";
 import { installIntegration } from "./integrations.js";
@@ -22,6 +23,9 @@ export function initProject(targetPath, options = {}) {
     root
   });
 
+  const externalAgents = detectExternalAgents();
+  mergeGenerationConfig(root, externalAgents, options);
+
   updateGitignore(root, created, skipped);
 
   let integrationResult = null;
@@ -39,10 +43,20 @@ export function initProject(targetPath, options = {}) {
     root,
     created,
     skipped,
+    generation: {
+      defaultRunner: "auto",
+      probeModels: {
+        requested: Boolean(options.probe_models),
+        status: options.probe_models ? "not_implemented" : "not_requested"
+      },
+      externalAgents
+    },
     integration: integrationResult,
     items: [
       ...created.map((item) => `已补齐：${item}`),
       ...skipped.map((item) => `已存在：${item}`),
+      "已检查本地 Agent 工具：",
+      ...agentSummaryItems(externalAgents),
       ...existingDocs.map((item) => `已存在真实全量文档，请按需执行 codespec sync --force：${item}`)
     ],
     message: `已检查 CodeSpec 项目：${root}`,
@@ -79,4 +93,177 @@ export function projectPaths(options = {}) {
     archives: path.join(root, "codespec/changes/archives"),
     runtime: path.join(root, ".codespec-cli")
   };
+}
+
+export function detectExternalAgents(env = process.env) {
+  return {
+    codex: agentInfo("codex", {
+      env,
+      recommendedModel: "gpt-5.3-codex-spark",
+      fallbackModel: "gpt-5.5"
+    }),
+    claude: agentInfo("claude", {
+      env,
+      recommendedModel: "claude-sonnet-4-6"
+    }),
+    opencode: agentInfo("opencode", { env })
+  };
+}
+
+function agentInfo(command, metadata) {
+  const executablePath = findExecutable(command, metadata.env);
+  return {
+    available: Boolean(executablePath),
+    command,
+    ...(executablePath ? { path: executablePath.replaceAll(path.sep, "/") } : {}),
+    ...(executablePath ? { version: readVersion(executablePath, metadata.env) } : {}),
+    ...(metadata.recommendedModel ? { recommendedModel: metadata.recommendedModel } : {}),
+    ...(metadata.fallbackModel ? { fallbackModel: metadata.fallbackModel } : {})
+  };
+}
+
+function findExecutable(command, env = process.env) {
+  const pathValue = env.PATH || env.Path || env.path || "";
+  const extensions =
+    process.platform === "win32"
+      ? [".cmd", ".exe", ".bat", ".com", ".ps1", ""]
+      : [""];
+  for (const dir of pathValue.split(path.delimiter).filter(Boolean)) {
+    for (const extension of extensions) {
+      const candidate = path.join(dir, `${command}${extension}`);
+      if (isExecutableFile(candidate)) return candidate;
+    }
+  }
+  return null;
+}
+
+function isExecutableFile(file) {
+  try {
+    return fs.statSync(file).isFile();
+  } catch {
+    return false;
+  }
+}
+
+function readVersion(executablePath, env) {
+  const result = spawnVersion(executablePath, env);
+  const text = `${result.stdout || ""}${result.stderr || ""}`.trim();
+  return result.status === 0 && text ? text.split(/\r?\n/)[0] : null;
+}
+
+function spawnVersion(executablePath, env) {
+  if (process.platform === "win32" && /\.(cmd|bat)$/i.test(executablePath)) {
+    return spawnSync(executablePath, ["--version"], {
+      env,
+      encoding: "utf8",
+      shell: true,
+      windowsHide: true,
+      timeout: 1500
+    });
+  }
+  return spawnSync(executablePath, ["--version"], {
+    env,
+    encoding: "utf8",
+    windowsHide: true,
+    timeout: 1500
+  });
+}
+
+function mergeGenerationConfig(root, externalAgents, options) {
+  const file = path.join(root, ".codespec-cli/config.yaml");
+  const current = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : CONFIG_YAML;
+  fs.writeFileSync(file, mergeGenerationYaml(current, externalAgents, options), "utf8");
+}
+
+function mergeGenerationYaml(yaml, externalAgents, options) {
+  const lines = yaml.split(/\r?\n/);
+  const generationIndex = lines.findIndex((line) => line === "generation:");
+  if (generationIndex === -1) {
+    return `${yaml.trimEnd()}\n${generationYaml(externalAgents, options)}`;
+  }
+
+  const output = [];
+  output.push(...lines.slice(0, generationIndex + 1));
+
+  let endIndex = lines.length;
+  for (let index = generationIndex + 1; index < lines.length; index += 1) {
+    if (lines[index] && !lines[index].startsWith(" ")) {
+      endIndex = index;
+      break;
+    }
+  }
+
+  const generationBody = removeGenerationChildBlocks(lines.slice(generationIndex + 1, endIndex), ["probeModels", "externalAgents"]);
+  if (!generationBody.some((line) => /^  defaultRunner:/.test(line))) {
+    output.push("  defaultRunner: auto");
+  }
+  output.push(...generationBody.filter((line) => line !== ""));
+  output.push(probeModelsYaml(options));
+  output.push("  externalAgents:");
+  output.push(...Object.entries(externalAgents).flatMap(([name, agent]) => agentYamlLines(name, agent)));
+  output.push(...lines.slice(endIndex));
+
+  return `${output.join("\n").trimEnd()}\n`;
+}
+
+function removeGenerationChildBlocks(lines, blockNames) {
+  const output = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = lines[index].match(/^  ([A-Za-z0-9_-]+):\s*$/);
+    if (match && blockNames.includes(match[1])) {
+      index += 1;
+      while (index < lines.length && (lines[index] === "" || !/^  \S/.test(lines[index]))) {
+        index += 1;
+      }
+      index -= 1;
+      continue;
+    }
+    output.push(lines[index]);
+  }
+  return output;
+}
+
+function generationYaml(externalAgents, options) {
+  return `generation:
+  defaultRunner: auto
+${probeModelsYaml(options)}
+  externalAgents:
+${Object.entries(externalAgents)
+  .map(([name, agent]) => agentYaml(name, agent))
+  .join("")}`;
+}
+
+function probeModelsYaml(options) {
+  return `  probeModels:
+    requested: ${Boolean(options.probe_models)}
+    status: ${options.probe_models ? "not_implemented" : "not_requested"}`;
+}
+
+function agentYaml(name, agent) {
+  return `${agentYamlLines(name, agent).join("\n")}\n`;
+}
+
+function agentYamlLines(name, agent) {
+  const lines = [
+    `    ${name}:`,
+    `      available: ${agent.available}`,
+    `      command: ${agent.command}`
+  ];
+  if (agent.path) lines.push(`      path: ${quoteYaml(agent.path)}`);
+  if (agent.version) lines.push(`      version: ${quoteYaml(agent.version)}`);
+  if (agent.recommendedModel) lines.push(`      recommendedModel: ${agent.recommendedModel}`);
+  if (agent.fallbackModel) lines.push(`      fallbackModel: ${agent.fallbackModel}`);
+  return lines;
+}
+
+function quoteYaml(value) {
+  return JSON.stringify(value);
+}
+
+function agentSummaryItems(externalAgents) {
+  return Object.entries(externalAgents).map(([name, agent]) => {
+    if (!agent.available) return `  ${name}: 未发现`;
+    const model = agent.recommendedModel ? `，推荐模型 ${agent.recommendedModel}` : "";
+    return `  ${name}: 可用${model}`;
+  });
 }

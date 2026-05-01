@@ -9,7 +9,9 @@ const VALUE_OPTIONS = new Set([
   "--project-id",
   "--codewiki-project-id",
   "--max-lag",
-  "--commit-scan-limit"
+  "--commit-scan-limit",
+  "--runner",
+  "--model"
 ]);
 
 const BOOLEAN_OPTIONS = new Set([
@@ -19,7 +21,8 @@ const BOOLEAN_OPTIONS = new Set([
   "--force",
   "--no-codewiki",
   "--no-persist-env",
-  "--generate"
+  "--generate",
+  "--probe-models"
 ]);
 
 export function parseArgs(argv) {
