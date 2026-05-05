@@ -6,6 +6,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const CLI = path.resolve("bin/codespec.js");
+const EMPTY_PATH = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-empty-path-"));
 
 function tempProject() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "codespec-test-"));
@@ -23,6 +24,9 @@ function run(args, options = {}) {
       LLM_API_KEY: "",
       CODESPEC_LLM_MODEL: "",
       LLM_MODEL: "",
+      CODESPEC_GENERATION_MODE: "",
+      PATH: EMPTY_PATH,
+      Path: EMPTY_PATH,
       ...env
     },
     ...spawnOptions
@@ -44,6 +48,90 @@ function makeMockCommand(dir, name, output) {
   return file;
 }
 
+function makeMockRunner(dir, name, script) {
+  const scriptFile = path.join(dir, `${name}-mock.cjs`);
+  fs.writeFileSync(scriptFile, script, "utf8");
+  const extension = process.platform === "win32" ? ".cmd" : "";
+  const file = path.join(dir, `${name}${extension}`);
+  const body =
+    process.platform === "win32"
+      ? `@echo off\r\n"${process.execPath}" "${scriptFile}" %*\r\n`
+      : `#!/usr/bin/env sh\n"${process.execPath}" "${scriptFile}" "$@"\n`;
+  fs.writeFileSync(file, body, "utf8");
+  if (process.platform !== "win32") fs.chmodSync(file, 0o755);
+  return file;
+}
+
+function mockRunnerEnv(binDir, extra = {}) {
+  const pathValue = binDir;
+  return { PATH: pathValue, Path: pathValue, ...extra };
+}
+
+function codexMockScript() {
+  return `
+const fs = require("node:fs");
+const path = require("node:path");
+const args = process.argv.slice(2);
+const previousCalls = process.env.MOCK_CALLS_FILE && fs.existsSync(process.env.MOCK_CALLS_FILE)
+  ? fs.readFileSync(process.env.MOCK_CALLS_FILE, "utf8").split("\\n").filter(Boolean).length
+  : 0;
+if (process.env.MOCK_CALLS_FILE) fs.appendFileSync(process.env.MOCK_CALLS_FILE, args.join("\\u0000") + "\\n", "utf8");
+if (process.env.MOCK_MODIFY_SPECS === "1") {
+  fs.mkdirSync(path.join(process.cwd(), "codespec/specs"), { recursive: true });
+  fs.writeFileSync(path.join(process.cwd(), "codespec/specs/spec.md"), "modified by external runner\\n", "utf8");
+}
+if (process.env.MOCK_MODIFY_SOURCE === "1") {
+  fs.writeFileSync(path.join(process.cwd(), "src/auth/login.js"), "modified by external runner\\n", "utf8");
+}
+if (process.env.MOCK_MODIFY_CODESPEC_CONFIG === "1") {
+  fs.mkdirSync(path.join(process.cwd(), ".codespec-cli"), { recursive: true });
+  fs.writeFileSync(path.join(process.cwd(), ".codespec-cli/config.yaml"), "modified by external runner\\n", "utf8");
+}
+if (process.env.MOCK_FAIL_SPARK === "1" && args.includes("gpt-5.3-codex-spark")) process.exit(9);
+if (process.env.MOCK_FAIL === "1") process.exit(7);
+const outputIndex = args.indexOf("--output-last-message");
+if (process.env.MOCK_EMPTY === "1") {
+  if (outputIndex >= 0) fs.writeFileSync(args[outputIndex + 1], "", "utf8");
+  process.exit(0);
+}
+if (process.env.MOCK_LOG_ONLY === "1") {
+  if (outputIndex >= 0) fs.writeFileSync(args[outputIndex + 1], "ordinary log line without markdown\\n", "utf8");
+  else process.stdout.write("ordinary log line without markdown\\n");
+  process.exit(0);
+}
+const prompt = args[args.length - 1] || "";
+const outputPath = outputIndex >= 0 ? args[outputIndex + 1] || "" : "";
+const isSpec = outputPath.includes("-spec-") || (!outputPath && (previousCalls > 0 || prompt.includes("Generated design.md") || prompt.includes("spec.md")));
+const isModule = outputPath.includes("-module-");
+const content = isSpec
+  ? "# Mock Codex SPEC\\n\\nDerived from design by mock codex.\\n\\n## 1. 组件定位\\nMock spec.\\n\\n## 2. 领域术语\\nMock terms.\\n\\n## 3. 角色与边界\\nMock boundaries.\\n\\n## 4. DFX 约束\\nMock DFX.\\n\\n## 5. 核心能力\\nMock capabilities.\\n\\n## 6. 数据约束\\nMock data constraints.\\n"
+  : isModule
+    ? "# Mock Codex Module\\n\\n## 1. 模块定位\\nModule path: src/auth\\n\\n## 2. 核心流程\\nMock module flow.\\n"
+    : "# Mock Codex Design\\n\\nModule path: src/auth\\n\\n## 1. 设计概述\\nMock design.\\n\\n## 2. 系统架构\\nMock architecture.\\n\\n## 3. 数据模型\\nMock data.\\n\\n## 4. 接口设计\\nMock interfaces.\\n\\n## 5. 核心流程设计\\nMock flow.\\n\\n## 6. 算法设计\\nMock algorithms.\\n\\n## 7. 缓存设计\\nMock cache.\\n\\n## 8. 异常处理设计\\nMock errors.\\n\\n## 9. 监控与日志\\nMock observability.\\n\\n## 10. 安全设计\\nMock security.\\n";
+if (outputIndex >= 0) fs.writeFileSync(args[outputIndex + 1], content, "utf8");
+else process.stdout.write(content);
+`;
+}
+
+function claudeMockScript() {
+  return `
+const fs = require("node:fs");
+const args = process.argv.slice(2);
+const previousCalls = process.env.MOCK_CALLS_FILE && fs.existsSync(process.env.MOCK_CALLS_FILE)
+  ? fs.readFileSync(process.env.MOCK_CALLS_FILE, "utf8").split("\\n").filter(Boolean).length
+  : 0;
+if (process.env.MOCK_CALLS_FILE) fs.appendFileSync(process.env.MOCK_CALLS_FILE, args.join("\\u0000") + "\\n", "utf8");
+if (process.env.MOCK_FAIL === "1") process.exit(7);
+if (process.env.MOCK_EMPTY === "1") process.exit(0);
+const prompt = args[args.indexOf("-p") + 1] || "";
+const isSpec = previousCalls > 0 || prompt.includes("Generated design.md") || prompt.includes("spec.md");
+const result = isSpec
+  ? "# Mock Claude SPEC\\n\\nDerived from design by mock claude.\\n\\n## 1. 组件定位\\nMock spec.\\n\\n## 2. 领域术语\\nMock terms.\\n\\n## 3. 角色与边界\\nMock boundaries.\\n\\n## 4. DFX 约束\\nMock DFX.\\n\\n## 5. 核心能力\\nMock capabilities.\\n\\n## 6. 数据约束\\nMock data constraints.\\n"
+  : "# Mock Claude Design\\n\\nModule path: src/auth\\n\\n## 1. 设计概述\\nMock design.\\n\\n## 2. 系统架构\\nMock architecture.\\n\\n## 3. 数据模型\\nMock data.\\n\\n## 4. 接口设计\\nMock interfaces.\\n\\n## 5. 核心流程设计\\nMock flow.\\n\\n## 6. 算法设计\\nMock algorithms.\\n\\n## 7. 缓存设计\\nMock cache.\\n\\n## 8. 异常处理设计\\nMock errors.\\n\\n## 9. 监控与日志\\nMock observability.\\n\\n## 10. 安全设计\\nMock security.\\n";
+process.stdout.write(JSON.stringify({ result }));
+`;
+}
+
 function writeProjectFile(root, file, content = "") {
   const target = path.join(root, file);
   fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -52,14 +140,14 @@ function writeProjectFile(root, file, content = "") {
 
 test("init is idempotent and does not copy business templates", () => {
   const root = tempProject();
-  const first = json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  const first = json(run(["init", root, "--integration", "none", "--json"]));
   assert.equal(first.ok, true);
   assert.ok(fs.existsSync(path.join(root, "codespec/specs")));
   assert.ok(fs.existsSync(path.join(root, ".codespec-cli/config.yaml")));
   assert.equal(fs.existsSync(path.join(root, "codespec/specs/spec.md")), false);
   assert.equal(fs.existsSync(path.join(root, "codespec/specs/design.md")), false);
 
-  const second = json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  const second = json(run(["init", root, "--integration", "none", "--json"]));
   assert.equal(second.ok, true);
   assert.ok(second.skipped.includes(".codespec-cli/config.yaml"));
 });
@@ -70,7 +158,7 @@ test("init records local coding agent detection in result and config", () => {
   makeMockCommand(binDir, "codex", "codex mock 1.0.0");
 
   const env = { ...process.env, PATH: binDir, Path: binDir };
-  const result = json(run(["init", root, "--integration", "none", "--no-codewiki", "--probe-models", "--json"], { env }));
+  const result = json(run(["init", root, "--integration", "none", "--probe-models", "--json"], { env }));
   assert.equal(result.generation.probeModels.requested, true);
   assert.equal(result.generation.probeModels.status, "not_implemented");
   assert.equal(result.generation.externalAgents.codex.available, true);
@@ -89,14 +177,35 @@ test("init records local coding agent detection in result and config", () => {
   assert.match(config, /claude:\n      available: false/);
 });
 
+test("init can set default generation runner and generate honors it", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+
+  const init = json(
+    run(["init", root, "--integration", "none", "--default-runner", "codex", "--json"], {
+      env: mockRunnerEnv(binDir)
+    })
+  );
+  assert.equal(init.generation.defaultRunner, "codex");
+  const config = fs.readFileSync(path.join(root, ".codespec-cli/config.yaml"), "utf8");
+  assert.match(config, /defaultRunner: codex/);
+
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+  const generated = json(run(["--path", root, "generate", "--json"], { env: mockRunnerEnv(binDir) }));
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, ".codespec-cli/runs", generated.runId, "manifest.json"), "utf8"));
+  assert.equal(manifest.runner, "codex");
+  assert.equal(manifest.provider, "codex");
+});
+
 test("init preserves user-owned generation config while refreshing agent detection", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   const configFile = path.join(root, ".codespec-cli/config.yaml");
   const original = fs.readFileSync(configFile, "utf8");
   fs.writeFileSync(configFile, original.replace("generation:\n", "generation:\n  customKey: keep-me\n"), "utf8");
 
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   const config = fs.readFileSync(configFile, "utf8");
   assert.match(config, /customKey: keep-me/);
   assert.match(config, /externalAgents:/);
@@ -105,31 +214,40 @@ test("init preserves user-owned generation config while refreshing agent detecti
 
 test("start creates only change directory and state", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
-  const result = json(run(["--path", root, "start", "AR20260428-user-login", "--json"]));
-  assert.equal(result.change, "AR20260428-user-login");
-  assert.ok(fs.existsSync(path.join(root, "codespec/changes/AR20260428-user-login/.codespec-state.json")));
-  assert.equal(fs.existsSync(path.join(root, "codespec/changes/AR20260428-user-login/proposal.md")), false);
+  json(run(["init", root, "--integration", "none", "--json"]));
+  const result = json(run(["--path", root, "start", "REQ20260428-user-login", "--json"]));
+  assert.equal(result.change, "REQ20260428-user-login");
+  assert.ok(fs.existsSync(path.join(root, "codespec/changes/REQ20260428-user-login/.codespec-state.json")));
+  assert.equal(fs.existsSync(path.join(root, "codespec/changes/REQ20260428-user-login/proposal.md")), false);
 });
 
 test("status, go, accept, and archive follow the stage model", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
-  json(run(["--path", root, "start", "AR20260428-user-login", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
+  json(run(["--path", root, "start", "REQ20260428-user-login", "--json"]));
   let status = json(run(["--path", root, "status", "--json"]));
-  assert.equal(status.stages[0].status, "pending");
+  assert.equal(status.stages[0].status, "clarifying");
   assert.equal(status.stages[1].status, "blocked");
 
-  const changeDir = path.join(root, "codespec/changes/AR20260428-user-login");
+  const changeDir = path.join(root, "codespec/changes/REQ20260428-user-login");
   fs.writeFileSync(path.join(changeDir, "proposal.md"), "# 登录需求澄清\n\n范围已明确，包含验收标准。\n", "utf8");
   let go = json(run(["--path", root, "go", "--json"]));
   assert.equal(go.nextAction, "await_user_accept");
+  assert.equal(go.stage.allowedWritePath, "codespec/changes/REQ20260428-user-login/proposal.md");
+  assert.equal(go.stage.requiresUserGenerationApproval, true);
+  assert.equal(go.stage.requiresFullSpec, false);
+  assert.ok(go.stage.inputs.some((input) => input.path === "codespec/specs/spec.md" && input.required === false));
 
   const accepted = json(run(["--path", root, "accept", "--json"]));
   assert.equal(accepted.acceptedStage, "proposal");
   status = json(run(["--path", root, "status", "--json"]));
   assert.equal(status.stages[0].status, "confirmed");
-  assert.equal(status.stages[1].status, "pending");
+  assert.equal(status.stages[1].status, "clarifying");
+  go = json(run(["--path", root, "go", "--json"]));
+  assert.equal(go.stage.key, "delta-spec");
+  assert.equal(go.stage.requiresFullSpec, true);
+  assert.equal(go.stage.requiresFullDesign, false);
+  assert.ok(go.stage.inputs.some((input) => input.path === "codespec/changes/REQ20260428-user-login/proposal.md" && input.required === true));
 
   for (const [file, body] of [
     ["delta-spec.md", "# 增量规格\n\n## ADDED Requirements\n无\n## MODIFIED Requirements\n无\n## REMOVED Requirements\n无\n"],
@@ -138,16 +256,26 @@ test("status, go, accept, and archive follow the stage model", () => {
     ["validation.md", "# 验证\n\n结论：允许进入实现。\n"]
   ]) {
     fs.writeFileSync(path.join(changeDir, file), body, "utf8");
-    json(run(["--path", root, "accept", "--json"]));
+    const acceptedStage = json(run(["--path", root, "accept", "--json"]));
+    if (file === "validation.md") {
+      assert.equal(acceptedStage.readyForImplementation, true);
+      assert.match(acceptedStage.message, /可进入实现/);
+      assert.ok(acceptedStage.next.some((item) => item.includes("执行实现")));
+    }
   }
 
+  go = json(run(["--path", root, "go", "--json"]));
+  assert.equal(go.nextAction, "implementation");
+  assert.match(go.message, /可进入实现/);
+  assert.ok(go.next.some((item) => item.includes("tasks.md")));
+
   const archived = json(run(["--path", root, "archive", "--json"]));
-  assert.match(archived.archive, /codespec\/changes\/archives\/\d{4}-\d{2}-\d{2}-AR20260428-user-login/);
+  assert.match(archived.archive, /codespec\/changes\/archives\/\d{4}-\d{2}-\d{2}-REQ20260428-user-login/);
 });
 
 test("integration install/remove preserves modified files", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   const installed = json(run(["--path", root, "integration", "install", "opencode", "--json"]));
   assert.equal(installed.integration, "opencode");
   const commandFile = path.join(root, ".opencode/command/codespec.md");
@@ -159,17 +287,36 @@ test("integration install/remove preserves modified files", () => {
 
 test("integration install supports Claude Code and Codex repository commands", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
 
   const claude = json(run(["--path", root, "integration", "install", "claude-code", "--json"]));
   assert.equal(claude.integration, "claude-code");
-  assert.ok(fs.existsSync(path.join(root, ".claude/commands/codespec.md")));
-  assert.ok(fs.existsSync(path.join(root, ".claude/commands/codespec-proposal.md")));
+  const mainCommand = fs.readFileSync(path.join(root, ".claude/commands/codespec.md"), "utf8");
+  assert.match(mainCommand, /CodeSpec SDD/);
+  assert.match(mainCommand, /阶段切换卡片/);
+  assert.match(mainCommand, /codespec accept --json/);
+  assert.match(mainCommand, /nextAction 是 `implementation`/);
+  assert.match(mainCommand, /不要急着调用 `codespec done --json`/);
+  assert.match(mainCommand, /codespec generate && codespec apply/);
+  const proposalCommand = fs.readFileSync(path.join(root, ".claude/commands/codespec-proposal.md"), "utf8");
+  assert.match(proposalCommand, /可以生成/);
+  assert.match(proposalCommand, /stage.allowedWritePath/);
+  assert.match(proposalCommand, /澄清问题卡片/);
   assert.ok(fs.existsSync(path.join(root, ".claude/skills/codespec/SKILL.md")));
 
   const codex = json(run(["--path", root, "integration", "install", "codex", "--json"]));
   assert.equal(codex.integration, "codex");
   assert.ok(fs.existsSync(path.join(root, ".agents/skills/codespec/SKILL.md")));
+  const designSkill = fs.readFileSync(path.join(root, ".agents/skills/codespec-delta-design/SKILL.md"), "utf8");
+  assert.match(designSkill, /可以生成/);
+  assert.match(designSkill, /全量 design\.md 不存在/);
+  assert.match(designSkill, /不要伪造/);
+  const tasksSkill = fs.readFileSync(path.join(root, ".agents/skills/codespec-tasks/SKILL.md"), "utf8");
+  assert.match(tasksSkill, /每轮最多问 3 个澄清问题/);
+  assert.match(tasksSkill, /任务边界、文件范围/);
+  const validationSkill = fs.readFileSync(path.join(root, ".agents/skills/codespec-validation/SKILL.md"), "utf8");
+  assert.match(validationSkill, /是否允许进入实现/);
+  assert.match(validationSkill, /生成前确认/);
   assert.ok(fs.existsSync(path.join(root, ".agents/skills/codespec-validation/SKILL.md")));
 
   const list = json(run(["--path", root, "integration", "list", "--json"]));
@@ -181,7 +328,7 @@ test("integration install supports Claude Code and Codex repository commands", (
 
 test("init installs all supported integrations by default", () => {
   const root = tempProject();
-  const result = json(run(["init", root, "--no-codewiki", "--json"]));
+  const result = json(run(["init", root, "--json"]));
   assert.equal(result.integration.integration, "all");
   assert.ok(fs.existsSync(path.join(root, ".opencode/command/codespec.md")));
   assert.ok(fs.existsSync(path.join(root, ".claude/commands/codespec.md")));
@@ -198,7 +345,7 @@ test("validate reports required structure errors", () => {
 
 test("show reports a clear message when no generated run exists", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   const result = run(["--path", root, "show", "--json"]);
   assert.equal(result.status, 1);
   const payload = JSON.parse(result.stdout);
@@ -209,7 +356,7 @@ test("show reports a clear message when no generated run exists", () => {
 
 test("generate creates a run with manifest, spec, and design stub artifacts", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
 
   const generated = json(run(["--path", root, "generate", "--json"]));
   assert.equal(generated.ok, true);
@@ -228,7 +375,7 @@ test("generate creates a run with manifest, spec, and design stub artifacts", ()
 
 test("generate scans repository and plans src modules", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   writeProjectFile(root, "README.md", "# Demo\n");
   writeProjectFile(root, "docs/api.md", "# API\n");
   writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
@@ -289,7 +436,7 @@ test("generate scans repository and plans src modules", () => {
 
 test("generate planning falls back to Project Root when no obvious module exists", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   writeProjectFile(root, "index.js", "console.log('small project');\n");
 
   const generated = json(run(["--path", root, "generate", "--json"]));
@@ -303,9 +450,33 @@ test("generate planning falls back to Project Root when no obvious module exists
   ]);
 });
 
+test("generate plans Java Spring packages as domain modules", () => {
+  const root = tempProject();
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "src/main/java/org/example/petclinic/PetClinicApplication.java", "class PetClinicApplication {}\n");
+  writeProjectFile(root, "src/main/java/org/example/petclinic/owner/OwnerController.java", "class OwnerController {}\n");
+  writeProjectFile(root, "src/main/java/org/example/petclinic/vet/VetController.java", "class VetController {}\n");
+  writeProjectFile(root, "src/main/java/org/example/petclinic/system/CrashController.java", "class CrashController {}\n");
+  writeProjectFile(root, "src/main/resources/templates/owners.html", "<html></html>\n");
+
+  const generated = json(run(["--path", root, "generate", "--json"]));
+  const plan = JSON.parse(fs.readFileSync(path.join(root, ".codespec-cli/runs", generated.runId, "plan.json"), "utf8"));
+  assert.deepEqual(
+    plan.modules.map((module) => module.path),
+    [
+      "src/main/java/org/example/petclinic",
+      "src/main/java/org/example/petclinic/owner",
+      "src/main/java/org/example/petclinic/system",
+      "src/main/java/org/example/petclinic/vet",
+      "src/main/resources"
+    ]
+  );
+  assert.equal(plan.primaryExtension, ".java");
+});
+
 test("scan ignores monorepo package artifacts without hiding source build modules", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   writeProjectFile(root, "packages/api/src/index.ts", "export const api = true;\n");
   writeProjectFile(root, "packages/api/src/build/task.ts", "export const task = true;\n");
   writeProjectFile(root, "packages/api/dist/index.js", "compiled\n");
@@ -342,17 +513,18 @@ test("scan ignores monorepo package artifacts without hiding source build module
   assert.equal(scan.primaryExtension, ".ts");
 });
 
-test("generate rejects non-auto runners in P0 without creating a stub run", () => {
+test("generate rejects unimplemented opencode runner without creating a run", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
 
-  const result = run(["--path", root, "generate", "--runner", "codex", "--json"]);
+  const result = run(["--path", root, "generate", "--runner", "opencode", "--json"]);
   assert.equal(result.status, 1);
   assert.equal(result.stderr, "");
   const payload = JSON.parse(result.stdout);
   assert.equal(payload.ok, false);
   assert.equal(payload.code, "RUNNER_NOT_IMPLEMENTED");
-  assert.equal(payload.runner, "codex");
+  assert.equal(payload.runner, "opencode");
+  assert.ok(payload.next.includes("codespec generate --runner auto"));
   assert.equal(fs.readdirSync(path.join(root, ".codespec-cli/runs")).filter((entry) => entry !== "latest.json").length, 0);
 });
 
@@ -366,16 +538,15 @@ test("generate returns JSON on stdout when project is not initialized", () => {
   assert.equal(payload.code, "CODESPEC_NOT_INITIALIZED");
 });
 
-test("help does not advertise unimplemented external runners", () => {
+test("help advertises the minimal generate runner options", () => {
   const result = run(["help"]);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /codespec generate \[--runner auto\]/);
-  assert.doesNotMatch(result.stdout, /codespec generate .*codex/);
+  assert.match(result.stdout, /codespec generate \[--runner auto\|codex\|claude\|opencode\]/);
 });
 
 test("show --json returns the latest run manifest", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   const generated = json(run(["--path", root, "generate", "--json"]));
 
   const shown = json(run(["--path", root, "show", "--json"]));
@@ -386,7 +557,7 @@ test("show --json returns the latest run manifest", () => {
 
 test("show displays scan and planning summary", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
   writeProjectFile(root, "src/payment/pay.js", "export function pay() {}\n");
   json(run(["--path", root, "generate", "--json"]));
@@ -397,13 +568,46 @@ test("show displays scan and planning summary", () => {
   assert.match(shown.stdout, /planned modules: 2/);
 });
 
+test("runner auto selects mock codex when available", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+  makeMockRunner(binDir, "claude", claudeMockScript());
+  json(run(["init", root, "--integration", "none", "--json"], { env: mockRunnerEnv(binDir) }));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const generated = json(run(["--path", root, "generate", "--json"], { env: mockRunnerEnv(binDir) }));
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, ".codespec-cli/runs", generated.runId, "manifest.json"), "utf8"));
+  assert.equal(manifest.runner, "codex");
+  assert.equal(manifest.provider, "codex");
+  assert.equal(manifest.generationMode, "react");
+  assert.equal(manifest.generationReason, "module_first_pipeline");
+  assert.ok(manifest.artifacts.modules.length > 0);
+});
+
+test("runner auto selects mock claude when codex is unavailable", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "claude", claudeMockScript());
+  json(run(["init", root, "--integration", "none", "--json"], { env: mockRunnerEnv(binDir) }));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const generated = json(run(["--path", root, "generate", "--json"], { env: mockRunnerEnv(binDir) }));
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, ".codespec-cli/runs", generated.runId, "manifest.json"), "utf8"));
+  assert.equal(manifest.runner, "claude");
+  assert.equal(manifest.provider, "claude");
+  assert.equal(manifest.generationMode, "react");
+  assert.equal(manifest.generationReason, "module_first_pipeline");
+  assert.ok(manifest.artifacts.modules.length > 0);
+});
+
 test("fake direct generate writes prompts, llm log, and design-derived spec", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
   writeProjectFile(root, "src/payment/pay.js", "export function pay() {}\n");
 
-  const generated = json(run(["--path", root, "generate", "--json"], { env: { CODESPEC_LLM_PROVIDER: "fake" } }));
+  const generated = json(run(["--path", root, "generate", "--mode", "direct", "--json"], { env: { CODESPEC_LLM_PROVIDER: "fake" } }));
   const runDir = path.join(root, ".codespec-cli/runs", generated.runId);
   for (const file of ["design.md", "spec.md", "logs/prompts/design.md", "logs/prompts/spec.md", "logs/llm.json"]) {
     assert.ok(fs.existsSync(path.join(runDir, file)), file);
@@ -425,39 +629,173 @@ test("fake direct generate writes prompts, llm log, and design-derived spec", ()
 
   const spec = fs.readFileSync(path.join(runDir, "spec.md"), "utf8");
   assert.match(spec, /Derived from design/);
+  const designPrompt = fs.readFileSync(path.join(runDir, "logs/prompts/design.md"), "utf8");
+  assert.match(designPrompt, /DESIGN 模板/);
+  assert.match(designPrompt, /# \[组件名称\] 实现设计文档/);
   const specPrompt = fs.readFileSync(path.join(runDir, "logs/prompts/spec.md"), "utf8");
   assert.match(specPrompt, /Generated design\.md:/);
   assert.match(specPrompt, /src\/auth/);
+  assert.match(specPrompt, /SPEC 模板/);
+  assert.match(specPrompt, /# \[组件名称\] 规格说明书/);
+  assert.match(specPrompt, /Spec 与 Design 的核心区别/);
 });
 
-test("sync --generate uses fake direct generation when fake provider is selected", () => {
+test("fake react generate writes module documents and react log", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+  writeProjectFile(root, "src/payment/pay.js", "export function pay() {}\n");
+
+  const generated = json(
+    run(["--path", root, "generate", "--json"], {
+      env: { CODESPEC_LLM_PROVIDER: "fake", CODESPEC_GENERATION_MODE: "react" }
+    })
+  );
+  const runDir = path.join(root, ".codespec-cli/runs", generated.runId);
+  const manifest = JSON.parse(fs.readFileSync(path.join(runDir, "manifest.json"), "utf8"));
+  assert.equal(manifest.generationMode, "react");
+  assert.equal(manifest.provider, "fake");
+  assert.equal(manifest.logs.react, "logs/react.json");
+  assert.ok(manifest.artifacts.modules.length > 0);
+  assert.ok(fs.existsSync(path.join(runDir, "logs/react.json")));
+  assert.ok(fs.existsSync(path.join(runDir, "modules/src-auth.md")));
+  assert.ok(fs.existsSync(path.join(runDir, "logs/prompts/modules/src-auth.md")));
+  assert.match(fs.readFileSync(path.join(runDir, "spec.md"), "utf8"), /Derived from design/);
+});
+
+test("fake provider auto mode uses module-first generation", () => {
+  const root = tempProject();
+  json(run(["init", root, "--integration", "none", "--json"]));
+  for (let index = 0; index < 24; index += 1) {
+    writeProjectFile(root, `src/feature-${index}/file-${index}.js`, `export const value${index} = ${index};\n`);
+  }
+
+  const generated = json(run(["--path", root, "generate", "--json"], { env: { CODESPEC_LLM_PROVIDER: "fake" } }));
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, ".codespec-cli/runs", generated.runId, "manifest.json"), "utf8"));
+  assert.equal(manifest.generationMode, "react");
+  assert.equal(manifest.generationReason, "module_first_pipeline");
+  assert.ok(manifest.artifacts.modules.length > 0);
+});
+
+test("--mode react with mock codex writes module artifacts and react log", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"], { env: mockRunnerEnv(binDir) }));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+  writeProjectFile(root, "src/payment/pay.js", "export function pay() {}\n");
+
+  const generated = json(run(["--path", root, "generate", "--mode", "react", "--json"], { env: mockRunnerEnv(binDir) }));
+  const runDir = path.join(root, ".codespec-cli/runs", generated.runId);
+  const manifest = JSON.parse(fs.readFileSync(path.join(runDir, "manifest.json"), "utf8"));
+  assert.equal(manifest.runner, "codex");
+  assert.equal(manifest.generationMode, "react");
+  assert.equal(manifest.logs.react, "logs/react.json");
+  assert.ok(manifest.artifacts.modules.length > 0);
+  assert.ok(fs.existsSync(path.join(runDir, "modules/src-auth.md")));
+  assert.ok(fs.existsSync(path.join(runDir, "logs/react.json")));
+  assert.match(fs.readFileSync(path.join(runDir, "spec.md"), "utf8"), /Derived from design/);
+});
+
+test("react non-json output shows per-module progress", () => {
+  const root = tempProject();
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+  writeProjectFile(root, "src/payment/pay.js", "export function pay() {}\n");
+
+  const result = run(["--path", root, "generate", "--mode", "react"], { env: { CODESPEC_LLM_PROVIDER: "fake" } });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stderr, /模块 1\/2: Auth \(src\/auth\)/);
+  assert.match(result.stderr, /合成 design\.md/);
+  assert.match(result.stderr, /从 design\.md 反推 spec\.md/);
+  assert.match(result.stdout, /完成 已生成候选文档/);
+});
+
+test("generate --json keeps progress out of stderr", () => {
+  const root = tempProject();
+  json(run(["init", root, "--integration", "none", "--json"]));
   writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
 
-  const generated = json(run(["--path", root, "sync", "--generate", "--json"], { env: { CODESPEC_LLM_PROVIDER: "fake" } }));
-  const manifest = JSON.parse(fs.readFileSync(path.join(root, ".codespec-cli/runs", generated.runId, "manifest.json"), "utf8"));
-  assert.equal(manifest.generationMode, "direct");
+  const result = run(["--path", root, "generate", "--json"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, true);
+  assert.doesNotMatch(result.stdout, /检查 CodeSpec 项目结构/);
+});
+
+test("generate module --mode react uses fake react module generation", () => {
+  const root = tempProject();
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const module = json(
+    run(["--path", root, "generate", "module", "src/auth", "--mode", "react", "--json"], {
+      env: { CODESPEC_LLM_PROVIDER: "fake" }
+    })
+  );
+  const runDir = path.join(root, ".codespec-cli/runs", module.runId);
+  const manifest = JSON.parse(fs.readFileSync(path.join(runDir, "manifest.json"), "utf8"));
+  assert.equal(manifest.generationMode, "react");
   assert.equal(manifest.provider, "fake");
-  assert.ok(fs.existsSync(path.join(root, ".codespec-cli/runs", generated.runId, "logs/llm.json")));
+  assert.equal(manifest.logs.react, "logs/react.json");
+  assert.ok(fs.existsSync(path.join(runDir, "logs/prompts/modules/src-auth.md")));
+  assert.match(fs.readFileSync(path.join(runDir, "modules/src-auth.md"), "utf8"), /generated by codespec fake react/);
+});
+
+test("generate module --mode direct uses module log instead of react log", () => {
+  const root = tempProject();
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const module = json(
+    run(["--path", root, "generate", "module", "src/auth", "--mode", "direct", "--json"], {
+      env: { CODESPEC_LLM_PROVIDER: "fake" }
+    })
+  );
+  const runDir = path.join(root, ".codespec-cli/runs", module.runId);
+  const manifest = JSON.parse(fs.readFileSync(path.join(runDir, "manifest.json"), "utf8"));
+  assert.equal(manifest.generationMode, "direct");
+  assert.equal(manifest.logs.module, "logs/module.json");
+  assert.equal("react" in manifest.logs, false);
+  assert.ok(fs.existsSync(path.join(runDir, "logs/module.json")));
+  assert.equal(fs.existsSync(path.join(runDir, "logs/react.json")), false);
+});
+
+test("external runner auto mode uses module-first generation for large context", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"], { env: mockRunnerEnv(binDir) }));
+  for (let index = 0; index < 24; index += 1) {
+    writeProjectFile(root, `src/feature-${index}/file-${index}.js`, `export const value${index} = ${index};\n`);
+  }
+
+  const generated = json(run(["--path", root, "generate", "--json"], { env: mockRunnerEnv(binDir) }));
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, ".codespec-cli/runs", generated.runId, "manifest.json"), "utf8"));
+  assert.equal(manifest.runner, "codex");
+  assert.equal(manifest.generationMode, "react");
+  assert.equal(manifest.generationReason, "module_first_pipeline");
+  assert.ok(manifest.artifacts.modules.length > 0);
 });
 
 test("show displays fake direct generation metadata", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
-  json(run(["--path", root, "generate", "--json"], { env: { CODESPEC_LLM_PROVIDER: "fake" } }));
+  json(run(["--path", root, "generate", "--mode", "direct", "--json"], { env: { CODESPEC_LLM_PROVIDER: "fake" } }));
 
   const shown = run(["--path", root, "show"]);
   assert.equal(shown.status, 0, shown.stderr);
-  assert.match(shown.stdout, /generation mode: direct/);
+  assert.match(shown.stdout, /generation mode: whole-project-direct/);
+  assert.match(shown.stdout, /runner: auto/);
   assert.match(shown.stdout, /provider: fake/);
   assert.match(shown.stdout, /model: fake-codespec-model/);
 });
 
 test("explicit real provider without API key fails before creating a run", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
 
   const result = run(["--path", root, "generate", "--json"], { env: { CODESPEC_LLM_PROVIDER: "openai" } });
   assert.equal(result.status, 1);
@@ -469,9 +807,202 @@ test("explicit real provider without API key fails before creating a run", () =>
   assert.equal(fs.readdirSync(path.join(root, ".codespec-cli/runs")).filter((entry) => entry !== "latest.json").length, 0);
 });
 
+test("external codex runner writes staged design and spec artifacts", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  const callsFile = path.join(binDir, "calls.txt");
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const generated = json(
+    run(["--path", root, "generate", "--runner", "codex", "--mode", "direct", "--model", "custom-model", "--json"], {
+      env: mockRunnerEnv(binDir, { MOCK_CALLS_FILE: callsFile })
+    })
+  );
+  const runDir = path.join(root, ".codespec-cli/runs", generated.runId);
+  const manifest = JSON.parse(fs.readFileSync(path.join(runDir, "manifest.json"), "utf8"));
+  assert.equal(manifest.generationMode, "direct");
+  assert.equal(manifest.runner, "codex");
+  assert.equal(manifest.provider, "codex");
+  assert.equal(manifest.model, "custom-model");
+  assert.equal(manifest.logs.external, "logs/external.json");
+  assert.match(fs.readFileSync(path.join(runDir, "design.md"), "utf8"), /Mock Codex Design/);
+  assert.match(fs.readFileSync(path.join(runDir, "spec.md"), "utf8"), /Derived from design by mock codex/);
+  const calls = fs.readFileSync(callsFile, "utf8");
+  assert.match(calls, /custom-model/);
+  assert.match(calls, /--sandbox/);
+  assert.ok(fs.existsSync(path.join(runDir, "logs/prompts/design.md")));
+  assert.ok(fs.existsSync(path.join(runDir, "logs/prompts/spec.md")));
+});
+
+test("codex runner retries fallback model when default model fails", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  const callsFile = path.join(binDir, "calls.txt");
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"], { env: mockRunnerEnv(binDir) }));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const generated = json(
+    run(["--path", root, "generate", "--runner", "codex", "--mode", "direct", "--json"], {
+      env: mockRunnerEnv(binDir, { MOCK_CALLS_FILE: callsFile, MOCK_FAIL_SPARK: "1" })
+    })
+  );
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, ".codespec-cli/runs", generated.runId, "manifest.json"), "utf8"));
+  assert.equal(manifest.model, "gpt-5.5");
+  const calls = fs.readFileSync(callsFile, "utf8");
+  assert.match(calls, /gpt-5\.3-codex-spark/);
+  assert.match(calls, /gpt-5\.5/);
+});
+
+test("external claude runner parses JSON result output", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  const callsFile = path.join(binDir, "calls.txt");
+  makeMockRunner(binDir, "claude", claudeMockScript());
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const generated = json(
+    run(["--path", root, "generate", "--runner", "claude", "--mode", "direct", "--json"], {
+      env: mockRunnerEnv(binDir, { MOCK_CALLS_FILE: callsFile })
+    })
+  );
+  const runDir = path.join(root, ".codespec-cli/runs", generated.runId);
+  const manifest = JSON.parse(fs.readFileSync(path.join(runDir, "manifest.json"), "utf8"));
+  assert.equal(manifest.generationMode, "direct");
+  assert.equal(manifest.runner, "claude");
+  assert.equal(manifest.model, "claude-sonnet-4-6");
+  assert.match(fs.readFileSync(path.join(runDir, "design.md"), "utf8"), /Mock Claude Design/);
+  assert.match(fs.readFileSync(path.join(runDir, "spec.md"), "utf8"), /Derived from design by mock claude/);
+  assert.match(fs.readFileSync(callsFile, "utf8"), /claude-sonnet-4-6/);
+});
+
+test("external runner failures are structured and do not update latest", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const result = run(["--path", root, "generate", "--runner", "codex", "--json"], {
+    env: mockRunnerEnv(binDir, { MOCK_FAIL: "1" })
+  });
+  assert.equal(result.status, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.code, "EXTERNAL_RUNNER_FAILED");
+  assert.ok(payload.next.some((item) => item.includes("logs/*stdout.log")));
+  assert.equal(fs.existsSync(path.join(root, ".codespec-cli/runs/latest.json")), false);
+});
+
+test("external runner empty output fails", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const result = run(["--path", root, "generate", "--runner", "codex", "--json"], {
+    env: mockRunnerEnv(binDir, { MOCK_EMPTY: "1" })
+  });
+  assert.equal(result.status, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.code, "EXTERNAL_RUNNER_EMPTY_OUTPUT");
+});
+
+test("external runner non-markdown output fails", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"], { env: mockRunnerEnv(binDir) }));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const result = run(["--path", root, "generate", "--runner", "codex", "--json"], {
+    env: mockRunnerEnv(binDir, { MOCK_LOG_ONLY: "1" })
+  });
+  assert.equal(result.status, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.code, "EXTERNAL_RUNNER_UNPARSEABLE_OUTPUT");
+  assert.ok(payload.next.some((item) => item.includes("Markdown")));
+});
+
+test("external runner fails if it modifies authoritative specs", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+  writeProjectFile(root, "codespec/specs/spec.md", "# Existing SPEC\n");
+
+  const result = run(["--path", root, "generate", "--runner", "codex", "--json"], {
+    env: mockRunnerEnv(binDir, { MOCK_MODIFY_SPECS: "1" })
+  });
+  assert.equal(result.status, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.code, "EXTERNAL_RUNNER_MODIFIED_SPECS");
+  assert.deepEqual(payload.modifiedSpecs, ["codespec/specs/spec.md"]);
+});
+
+test("external runner fails if it modifies source files", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"], { env: mockRunnerEnv(binDir) }));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const result = run(["--path", root, "generate", "--runner", "codex", "--json"], {
+    env: mockRunnerEnv(binDir, { MOCK_MODIFY_SOURCE: "1" })
+  });
+  assert.equal(result.status, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.code, "EXTERNAL_RUNNER_MODIFIED_WORKTREE");
+  assert.ok(payload.modifiedFiles.includes("src/auth/login.js"));
+  assert.ok(payload.next.includes("git diff"));
+});
+
+test("external runner detects changes to a path that was dirty before invocation", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"], { env: mockRunnerEnv(binDir) }));
+  writeProjectFile(root, "src/auth/login.js", "dirty before runner\n");
+
+  const result = run(["--path", root, "generate", "--runner", "codex", "--json"], {
+    env: mockRunnerEnv(binDir, { MOCK_MODIFY_SOURCE: "1" })
+  });
+  assert.equal(result.status, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.code, "EXTERNAL_RUNNER_MODIFIED_WORKTREE");
+  assert.ok(payload.modifiedFiles.includes("src/auth/login.js"));
+});
+
+test("external runner fails if it modifies codespec runtime config outside current run", () => {
+  const root = tempProject();
+  const binDir = fs.mkdtempSync(path.join(os.tmpdir(), "codespec-runner-"));
+  makeMockRunner(binDir, "codex", codexMockScript());
+  json(run(["init", root, "--integration", "none", "--json"], { env: mockRunnerEnv(binDir) }));
+  writeProjectFile(root, "src/auth/login.js", "export function login() {}\n");
+
+  const result = run(["--path", root, "generate", "--runner", "codex", "--json"], {
+    env: mockRunnerEnv(binDir, { MOCK_MODIFY_CODESPEC_CONFIG: "1" })
+  });
+  assert.equal(result.status, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, false);
+  assert.equal(payload.code, "EXTERNAL_RUNNER_MODIFIED_WORKTREE");
+  assert.ok(payload.modifiedFiles.includes(".codespec-cli/config.yaml"));
+});
+
 test("apply writes latest spec and design, protects existing files, and supports force", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   const generated = json(run(["--path", root, "generate", "--json"]));
 
   const applied = json(run(["--path", root, "apply", "--json"]));
@@ -486,27 +1017,47 @@ test("apply writes latest spec and design, protects existing files, and supports
   assert.match(blockedPayload.message, /--force/);
 
   const runSpec = path.join(root, ".codespec-cli/runs", generated.runId, "spec.md");
-  fs.writeFileSync(runSpec, "<!-- generated by codespec stub -->\n# Forced SPEC\n", "utf8");
+  fs.writeFileSync(
+    runSpec,
+    "<!-- generated by codespec stub -->\n# Forced SPEC\n\n## 1. 组件定位\nForced.\n\n## 2. 领域术语\nForced.\n\n## 3. 角色与边界\nForced.\n\n## 4. DFX 约束\nForced.\n\n## 5. 核心能力\nForced.\n\n## 6. 数据约束\nForced.\n",
+    "utf8"
+  );
   const forced = json(run(["--path", root, "apply", "--force", "--json"]));
   assert.equal(forced.ok, true);
   assert.match(fs.readFileSync(path.join(root, "codespec/specs/spec.md"), "utf8"), /Forced SPEC/);
 });
 
-test("sync --generate is equivalent to generate and does not require CodeWiki token", () => {
+test("apply rejects generated artifacts that fail required section checks", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
+  const generated = json(run(["--path", root, "generate", "--json"]));
+  fs.writeFileSync(path.join(root, ".codespec-cli/runs", generated.runId, "spec.md"), "# Bad SPEC\n\nMissing required sections.\n", "utf8");
 
-  const generated = json(run(["--path", root, "sync", "--generate", "--json"]));
-  assert.equal(generated.ok, true);
-  assert.ok(fs.existsSync(path.join(root, ".codespec-cli/runs", generated.runId, "manifest.json")));
-  assert.ok(fs.existsSync(path.join(root, ".codespec-cli/runs", generated.runId, "spec.md")));
-  assert.ok(fs.existsSync(path.join(root, ".codespec-cli/runs", generated.runId, "logs/scan.json")));
-  assert.ok(fs.existsSync(path.join(root, ".codespec-cli/runs", generated.runId, "plan.json")));
+  const result = run(["--path", root, "apply", "--json"]);
+  assert.equal(result.status, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.code, "APPLY_QUALITY_FAILED");
+  assert.ok(payload.findings.some((finding) => finding.code === "SPEC_SECTION_MISSING"));
+  assert.ok(payload.next.includes("codespec show"));
+  assert.equal(fs.existsSync(path.join(root, "codespec/specs/spec.md")), false);
+});
+
+test("apply rejects runner environment chatter in generated artifacts", () => {
+  const root = tempProject();
+  json(run(["init", root, "--integration", "none", "--json"]));
+  const generated = json(run(["--path", root, "generate", "--json"]));
+  fs.appendFileSync(path.join(root, ".codespec-cli/runs", generated.runId, "spec.md"), "\nI could not write files in this sandbox.\n", "utf8");
+
+  const result = run(["--path", root, "apply", "--json"]);
+  assert.equal(result.status, 1);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.code, "APPLY_QUALITY_FAILED");
+  assert.ok(payload.findings.some((finding) => finding.code === "RUNNER_ENVIRONMENT_TEXT"));
 });
 
 test("generate module writes a module stub into the current run", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   const generated = json(run(["--path", root, "generate", "--json"]));
 
   const module = json(run(["--path", root, "generate", "module", "src/auth", "--json"]));
@@ -522,7 +1073,7 @@ test("generate module writes a module stub into the current run", () => {
 
 test("generate module creates a run when no current run exists", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
 
   const module = json(run(["--path", root, "generate", "module", "lib/core", "--json"]));
   assert.equal(module.ok, true);
@@ -533,7 +1084,7 @@ test("generate module creates a run when no current run exists", () => {
 
 test("generate module records warning when module path is missing", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
 
   const module = json(run(["--path", root, "generate", "module", "missing/module", "--json"]));
   const manifest = JSON.parse(fs.readFileSync(path.join(root, ".codespec-cli/runs", module.runId, "manifest.json"), "utf8"));
@@ -542,7 +1093,7 @@ test("generate module records warning when module path is missing", () => {
 
 test("show guides module-only runs back to generate instead of apply", () => {
   const root = tempProject();
-  json(run(["init", root, "--integration", "none", "--no-codewiki", "--json"]));
+  json(run(["init", root, "--integration", "none", "--json"]));
   json(run(["--path", root, "generate", "module", "src/auth", "--json"]));
 
   const shown = run(["--path", root, "show"]);

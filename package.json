@@ -1,5 +1,5 @@
 {
-  "name": "@company/codespec-cli",
+  "name": "codespec-community",
   "version": "0.1.0",
   "type": "module",
   "description": "CodeSpec methodology, templates, and CLI workflow tools.",
@@ -18,5 +18,5 @@
     "templates",
     "docs"
   ],
-  "license": "UNLICENSED"
+  "license": "MIT"
 }

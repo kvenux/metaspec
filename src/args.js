@@ -2,16 +2,10 @@ const VALUE_OPTIONS = new Set([
   "--path",
   "--change",
   "--integration",
-  "--script-dir",
-  "--token",
-  "--project-url",
-  "--codewiki-project-url",
-  "--project-id",
-  "--codewiki-project-id",
-  "--max-lag",
-  "--commit-scan-limit",
   "--runner",
-  "--model"
+  "--mode",
+  "--model",
+  "--default-runner"
 ]);
 
 const BOOLEAN_OPTIONS = new Set([
@@ -19,9 +13,6 @@ const BOOLEAN_OPTIONS = new Set([
   "-h",
   "--json",
   "--force",
-  "--no-codewiki",
-  "--no-persist-env",
-  "--generate",
   "--probe-models"
 ]);
 
@@ -49,7 +40,5 @@ export function parseArgs(argv) {
     }
   }
 
-  if (options.codewiki_project_url && !options.project_url) options.project_url = options.codewiki_project_url;
-  if (options.codewiki_project_id && !options.project_id) options.project_id = options.codewiki_project_id;
   return { command: positionals[0] || "help", args: positionals.slice(1), options };
 }

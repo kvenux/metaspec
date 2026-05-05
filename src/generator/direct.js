@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fakeCompletion } from "../llm.js";
 import { ensureDir, rel, writeJson } from "../util.js";
+import { commonOutputRules, readFullTemplates, specBlackBoxRules } from "./templates.js";
 
 export function runDirectGeneration({ paths, run, scan, plan, strategy }) {
   const promptsDir = path.join(run.dir, "logs/prompts");
@@ -73,9 +74,19 @@ export function runDirectGeneration({ paths, run, scan, plan, strategy }) {
 }
 
 function buildDesignPrompt(scan, plan) {
-  return `You are CodeSpec direct generator.
-Task: generate design.md from scan and plan.
-Do not write files. Return Markdown only.
+  const templates = readFullTemplates();
+  return `你是 CodeSpec direct design.md 生成 runner。
+当前任务：基于 scan 和 plan 直接生成整体 design.md。
+
+${commonOutputRules()}
+
+模板要求：
+1. 必须严格使用下面 DESIGN 模板的主章节结构和标题。
+2. 保留模板中的一级/二级标题语义，但用真实项目内容替换占位内容。
+3. 不适用的章节不要删除，写“无明确设计”或“待确认”，并说明依据。
+
+DESIGN 模板：
+${templates.design}
 
 Project: ${plan.projectName}
 Language: ${plan.language || "unknown"}
@@ -96,10 +107,25 @@ ${scan.fileTree}
 }
 
 function buildSpecPrompt(design) {
-  return `You are CodeSpec direct generator.
-Task: generate spec.md from the generated design.md.
-Important: derive the SPEC only from design.md content below. Do not use source files directly.
-Return Markdown only.
+  const templates = readFullTemplates();
+  return `你是 CodeSpec direct spec.md 生成 runner。
+当前任务：只从已生成的 design.md 反推出 SPEC。
+
+${commonOutputRules()}
+
+${specBlackBoxRules()}
+
+模板要求：
+1. 必须严格使用下面 SPEC 模板的主章节结构和标题。
+2. 保留模板章节：组件定位、领域术语、角色与边界、DFX约束、核心能力、数据约束。
+3. 用业务语言替换占位内容，不要保留“[组件名称]”“[功能模块名称]”等占位符。
+4. 不要输出 SPEC-annotated 中的写作指导，只输出最终 SPEC 正文。
+
+SPEC 模板：
+${templates.spec}
+
+SPEC 方法论参考：
+${templates.specAnnotated}
 
 Generated design.md:
 ${design}

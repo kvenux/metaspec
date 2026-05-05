@@ -1,9 +1,20 @@
 
-# [AR编号] Spec 增量设计
+# [REQ编号] Spec 增量设计
 
 > 本文档描述对 SPEC.md 的增量变更，使用 ADDED/MODIFIED/REMOVED 标记。
 > 完成后需合并到全量 SPEC.md 中。
 
+## 0. 用户澄清记录
+
+### 0.1 已确认规则口径
+
+- [规则口径1：来源于 proposal.md、用户确认或现有 SPEC.md]
+- [规则口径2：来源于 proposal.md、用户确认或现有 SPEC.md]
+
+### 0.2 待确认问题
+
+- [ ] [问题1：影响业务规则或验收条件]
+- [ ] [问题2：如无待确认问题可写“无”]
 
 ## ADDED Requirements
 

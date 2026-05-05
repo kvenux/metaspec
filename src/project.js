@@ -44,7 +44,7 @@ export function initProject(targetPath, options = {}) {
     created,
     skipped,
     generation: {
-      defaultRunner: "auto",
+      defaultRunner: resolveDefaultRunner(options),
       probeModels: {
         requested: Boolean(options.probe_models),
         status: options.probe_models ? "not_implemented" : "not_requested"
@@ -52,15 +52,30 @@ export function initProject(targetPath, options = {}) {
       externalAgents
     },
     integration: integrationResult,
+    summary: {
+      project: root,
+      "default runner": resolveDefaultRunner(options),
+      config: ".codespec-cli/config.yaml"
+    },
+    sections: [
+      ...(created.length ? [{ title: "已创建", items: created }] : []),
+      ...(skipped.length ? [{ title: "已存在", items: skipped }] : []),
+      {
+        title: "本地生成工具",
+        items: agentSummaryItems(externalAgents).map((item) => item.trim())
+      },
+      ...(existingDocs.length ? [{ title: "已有权威文档", items: existingDocs }] : [])
+    ],
     items: [
       ...created.map((item) => `已补齐：${item}`),
       ...skipped.map((item) => `已存在：${item}`),
+      `默认生成工具：${resolveDefaultRunner(options)}`,
       "已检查本地 Agent 工具：",
       ...agentSummaryItems(externalAgents),
-      ...existingDocs.map((item) => `已存在真实全量文档，请按需执行 codespec sync --force：${item}`)
+      ...existingDocs.map((item) => `已存在真实全量文档，如需覆盖请执行 codespec apply --force：${item}`)
     ],
     message: `已检查 CodeSpec 项目：${root}`,
-    next: ["codespec start AR202604270001-feature-name", "在 opencode、Claude Code 或 Codex 中进入 CodeSpec 命令/技能"]
+    next: ["codespec generate", "codespec show", "codespec apply"]
   };
 }
 
@@ -193,9 +208,11 @@ function mergeGenerationYaml(yaml, externalAgents, options) {
     }
   }
 
-  const generationBody = removeGenerationChildBlocks(lines.slice(generationIndex + 1, endIndex), ["probeModels", "externalAgents"]);
-  if (!generationBody.some((line) => /^  defaultRunner:/.test(line))) {
-    output.push("  defaultRunner: auto");
+  const blockNames = ["probeModels", "externalAgents"];
+  if (options.default_runner) blockNames.push("defaultRunner");
+  const generationBody = removeGenerationChildBlocks(lines.slice(generationIndex + 1, endIndex), blockNames);
+  if (options.default_runner || !generationBody.some((line) => /^  defaultRunner:/.test(line))) {
+    output.push(`  defaultRunner: ${resolveDefaultRunner(options)}`);
   }
   output.push(...generationBody.filter((line) => line !== ""));
   output.push(probeModelsYaml(options));
@@ -209,6 +226,10 @@ function mergeGenerationYaml(yaml, externalAgents, options) {
 function removeGenerationChildBlocks(lines, blockNames) {
   const output = [];
   for (let index = 0; index < lines.length; index += 1) {
+    const scalarMatch = lines[index].match(/^  ([A-Za-z0-9_-]+):\s*.+$/);
+    if (scalarMatch && blockNames.includes(scalarMatch[1])) {
+      continue;
+    }
     const match = lines[index].match(/^  ([A-Za-z0-9_-]+):\s*$/);
     if (match && blockNames.includes(match[1])) {
       index += 1;
@@ -225,12 +246,16 @@ function removeGenerationChildBlocks(lines, blockNames) {
 
 function generationYaml(externalAgents, options) {
   return `generation:
-  defaultRunner: auto
+  defaultRunner: ${resolveDefaultRunner(options)}
 ${probeModelsYaml(options)}
   externalAgents:
 ${Object.entries(externalAgents)
   .map(([name, agent]) => agentYaml(name, agent))
   .join("")}`;
+}
+
+function resolveDefaultRunner(options) {
+  return options.default_runner || "auto";
 }
 
 function probeModelsYaml(options) {

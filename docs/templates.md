@@ -860,7 +860,7 @@ function algorithmA(input):
 
 ## templates/delta/proposal.md
 
-# [AR编号] 需求澄清
+# [REQ编号] 需求澄清
 
 ## 1. 背景与动机
 
@@ -959,7 +959,7 @@ function algorithmA(input):
 
 ## templates/delta/delta-spec.md
 
-# [AR编号] Spec 增量设计
+# [REQ编号] Spec 增量设计
 
 > 本文档描述对 SPEC.md 的增量变更，使用 ADDED/MODIFIED/REMOVED 标记。
 > 完成后需合并到全量 SPEC.md 中。
@@ -1080,7 +1080,7 @@ deactivate 本组件
 
 ## templates/delta/delta-design.md
 
-# [AR编号] Design 增量设计
+# [REQ编号] Design 增量设计
 
 > 本文档描述对 DESIGN.md 的增量变更。
 > 完成后需合并到全量 DESIGN.md 中。
@@ -1280,7 +1280,7 @@ Service --> Client: 响应
 
 ## templates/delta/tasks.md
 
-# [AR编号] 任务清单
+# [REQ编号] 任务清单
 
 > 本文档作为 AI Agent（Claude Code / Cursor）的输入，拆解为可执行的开发任务。
 > 每个任务应具体到文件/模块级别。
@@ -1386,7 +1386,7 @@ Service --> Client: 响应
 
 ## templates/delta/validation.md
 
-# [AR编号] 一致性验证报告
+# [REQ编号] 一致性验证报告
 
 > 本文档用于在实现前检查 proposal、delta-spec、delta-design、tasks 与全量文档之间的覆盖和冲突关系。
 

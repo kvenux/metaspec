@@ -1,5 +1,5 @@
 
-# [AR编号] 一致性验证报告
+# [REQ编号] 一致性验证报告
 
 > 本文档用于在实现前检查 proposal、delta-spec、delta-design、tasks 与全量文档之间的覆盖和冲突关系。
 

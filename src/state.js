@@ -11,7 +11,7 @@ export function normalizeChangeName(input) {
   if (/^[a-z]{2,}\d{6,}/i.test(raw)) {
     return slug.replace(/^([a-z]+)(\d+)/, (_, prefix, digits) => `${prefix.toUpperCase()}${digits}`);
   }
-  return `AR${nowStamp()}-${slug}`;
+  return `REQ${nowStamp()}-${slug}`;
 }
 
 export function startChange(input, options = {}) {
@@ -95,7 +95,7 @@ export function stageStatus(root, change, state, stage) {
   const previous = STAGES.slice(0, stage.index - 1);
   if (previous.some((item) => !ensureStageRecord(state, item).confirmed)) return "blocked";
   const file = path.join(root, "codespec/changes", change, stage.file);
-  if (!fs.existsSync(file)) return "pending";
+  if (!fs.existsSync(file)) return record.status === "clarifying" ? "clarifying" : "pending";
   const content = fs.readFileSync(file, "utf8");
   if (isTemplateContent(content, stage.file)) return "template";
   return "draft";
@@ -106,7 +106,7 @@ export function isTemplateContent(content, fileName = "") {
   if (!text) return true;
   if (text === `# ${fileName}`) return true;
   return (
-    /\[[^\]\n]*(?:占位符|AR编号|功能名|组件|服务|字段|名称|描述|来源|目标|系统|角色|规则|接口|流程|对象|算法|路径|类型|优先级)[^\]\n]*]/.test(text) ||
+    /\[[^\]\n]*(?:占位符|需求编号|功能名|组件|服务|字段|名称|描述|来源|目标|系统|角色|规则|接口|流程|对象|算法|路径|类型|优先级)[^\]\n]*]/.test(text) ||
     /F-01\s*\|\s*\[功能名]|US-01/.test(text)
   );
 }
@@ -133,7 +133,7 @@ export function acceptStage(options = {}, explicitChange, explicitStage) {
   if (!stage) throw new Error(`未知阶段：${explicitStage}`);
   const status = stageStatus(paths.root, change, state, stage);
   if (status === "blocked") throw new Error(`前序阶段未完成，不能确认 ${stage.key}。`);
-  if (status === "pending") throw new Error(`缺少阶段文件：${stage.file}`);
+  if (status === "pending" || status === "clarifying") throw new Error(`缺少阶段文件：${stage.file}`);
   if (status === "template") throw new Error(`阶段文件仍像模板，不能确认：${stage.file}`);
   const record = ensureStageRecord(state, stage);
   record.status = "confirmed";
@@ -144,7 +144,8 @@ export function acceptStage(options = {}, explicitChange, explicitStage) {
   const next = STAGES[stage.index];
   if (next) {
     state.currentStage = next.key;
-    ensureStageRecord(state, next);
+    const nextRecord = ensureStageRecord(state, next);
+    if (nextRecord.status === "pending") nextRecord.status = "clarifying";
   } else {
     state.currentStage = "completed";
   }
@@ -156,8 +157,9 @@ export function acceptStage(options = {}, explicitChange, explicitStage) {
     acceptedLabel: stage.name,
     nextStage: next ?? null,
     completed: !next,
-    message: next ? `已确认 ${stage.key}，进入 ${next.name}。` : `已确认 ${stage.key}，所有阶段已完成。`,
-    next: next ? ["继续在 opencode 中执行 /codespec"] : ["codespec done"]
+    readyForImplementation: !next,
+    message: next ? `已确认 ${stage.key}，进入 ${next.name}。` : `已确认 ${stage.key}，文档链已验证，可进入实现。`,
+    next: next ? ["继续在 opencode 中执行 /codespec"] : ["执行实现任务", "实现完成并验证通过后执行 codespec done"]
   };
 }
 

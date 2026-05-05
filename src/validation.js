@@ -12,10 +12,10 @@ export function validateProject(options = {}, explicitChange) {
   if (!fs.existsSync(paths.codespec)) findings.push(finding("error", "CS001", "codespec", "缺少 codespec/ 目录。"));
   if (!fs.existsSync(paths.specs)) findings.push(finding("error", "CS002", "codespec/specs", "缺少 codespec/specs/ 目录。"));
   if (!fs.existsSync(path.join(paths.specs, "spec.md"))) {
-    findings.push(finding("warn", "CS003", "codespec/specs/spec.md", "缺少 codespec/specs/spec.md；请从 CodeWiki 同步或导入真实全量 spec.md。"));
+    findings.push(finding("warn", "CS003", "codespec/specs/spec.md", "缺少 codespec/specs/spec.md；请生成或导入真实全量 spec.md。"));
   }
   if (!fs.existsSync(path.join(paths.specs, "design.md"))) {
-    findings.push(finding("warn", "CS004", "codespec/specs/design.md", "缺少 codespec/specs/design.md；请从 CodeWiki 同步或导入真实全量 design.md。"));
+    findings.push(finding("warn", "CS004", "codespec/specs/design.md", "缺少 codespec/specs/design.md；请生成或导入真实全量 design.md。"));
   }
   if (!fs.existsSync(paths.changes)) findings.push(finding("error", "CS005", "codespec/changes", "缺少 codespec/changes/ 目录。"));
   if (!fs.existsSync(paths.archives)) findings.push(finding("error", "CS006", "codespec/changes/archives", "缺少 codespec/changes/archives/ 目录。"));

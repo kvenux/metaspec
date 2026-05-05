@@ -1,6 +1,6 @@
 # CodeSpec 模板体系详细 Spec
 
-本文档定义当前仓库模板体系的用途、结构、字段语义和复刻规则。模板源文件位于 `templates/`，示例位于 `examples/CodeWiki-backend/`。
+本文档定义当前仓库模板体系的用途、结构、字段语义和复刻规则。模板源文件位于 `templates/`，示例位于 `examples/sample-project/`。
 
 ## 1. 模板总览
 
@@ -19,11 +19,11 @@
 | 全量 | `templates/full/SPEC.md` | `SPEC.md` 或 `codespec/specs/spec.md` | 功能规格说明书 |
 | 全量 | `templates/full/SPEC-annotated.md` | 写作参考 | 带注释的 Spec 写作指导 |
 | 全量 | `templates/full/DESIGN.md` | `DESIGN.md` 或 `codespec/specs/design.md` | 实现设计文档 |
-| 增量 | `templates/delta/proposal.md` | `changes/{AR-ID}/proposal.md` | 需求澄清 |
-| 增量 | `templates/delta/delta-spec.md` | `changes/{AR-ID}/delta-spec.md` | Spec 增量设计 |
-| 增量 | `templates/delta/delta-design.md` | `changes/{AR-ID}/delta-design.md` | Design 增量设计 |
-| 增量 | `templates/delta/tasks.md` | `changes/{AR-ID}/tasks.md` | 可执行任务清单 |
-| 增量 | `templates/delta/validation.md` | `changes/{AR-ID}/validation.md` | 一致性验证 |
+| 增量 | `templates/delta/proposal.md` | `changes/{REQ-ID}/proposal.md` | 需求澄清 |
+| 增量 | `templates/delta/delta-spec.md` | `changes/{REQ-ID}/delta-spec.md` | Spec 增量设计 |
+| 增量 | `templates/delta/delta-design.md` | `changes/{REQ-ID}/delta-design.md` | Design 增量设计 |
+| 增量 | `templates/delta/tasks.md` | `changes/{REQ-ID}/tasks.md` | 可执行任务清单 |
+| 增量 | `templates/delta/validation.md` | `changes/{REQ-ID}/validation.md` | 一致性验证 |
 | 扩展 | `templates/extension/service-context.md` | `codespec/service-context.md` | 周边交互上下文 |
 | 扩展 | `templates/extension/guidelines/coding.md` | `codespec/guidelines/coding.md` | 项目编码规范 |
 | 扩展 | `templates/extension/guidelines/testing.md` | `codespec/guidelines/testing.md` | 项目测试规范 |
@@ -55,19 +55,19 @@ codespec/specs/design.md
 ### 3.2 增量目录命名
 
 ```text
-codespec/changes/{AR-ID}/
+codespec/changes/{REQ-ID}/
 ```
 
 推荐形式：
 
 ```text
-ARYYYYMMDD-feature-name
-AR20251015-incremental-analysis
+REQYYYYMMDD-feature-name
+REQ20251015-incremental-analysis
 ```
 
 规则：
 
-1. `AR-ID` 应包含可追踪的需求编号或日期。
+1. `REQ-ID` 应包含可追踪的需求编号或日期。
 2. `feature-name` 使用短横线连接。
 3. 目录内文件名固定，不随功能重命名。
 
@@ -480,7 +480,7 @@ AR20251015-incremental-analysis
 1. 选择轻量模式或产业化模式。
 2. 用真实业务内容创建全量 Spec。
 3. 用真实技术内容创建全量 Design。
-4. 收到 AR 后创建 `changes/{AR-ID}/`。
+4. 收到需求后创建 `changes/{REQ-ID}/`。
 5. 按顺序写 `proposal.md`、`delta-spec.md`、`delta-design.md`、`tasks.md`、`validation.md`。
 6. 用户或评审方确认每个阶段。
 7. 实现完成后合并增量到全量文档。
@@ -490,11 +490,11 @@ AR20251015-incremental-analysis
 
 ## 14. 示例复刻依据
 
-`examples/CodeWiki-backend/` 展示完整闭环：
+`examples/sample-project/` 展示完整闭环：
 
 1. `spec.md`：全量业务规格。
 2. `design.md`：全量实现设计。
-3. `changes/AR20251015-incremental-analysis/proposal.md`：增量分析需求。
+3. `changes/REQ20251015-incremental-analysis/proposal.md`：增量分析需求。
 4. `delta-spec.md`：新增和修改业务规则。
 5. `delta-design.md`：设计决策、数据模型、API 和 worker 流程。
 6. `tasks.md`：文件级实现任务。
@@ -515,7 +515,7 @@ AR20251015-incremental-analysis
 
 # CodeSpec 方法论详细 Spec
 
-本文档用于复刻当前仓库中的 CodeSpec 规格驱动开发方法。复刻时应以本文件描述的方法论为流程骨架，以 `docs/workflow.md`、`standards/codespec-standard.md`、`templates/` 和 `examples/CodeWiki-backend/` 作为源材料。
+本文档用于复刻当前仓库中的 CodeSpec 规格驱动开发方法。复刻时应以本文件描述的方法论为流程骨架，以 `docs/workflow.md`、`standards/codespec-standard.md`、`templates/` 和 `examples/sample-project/` 作为源材料。
 
 ## 1. 定位
 
@@ -525,11 +525,11 @@ CodeSpec 是一种规格驱动开发方法，目标是把需求、规格、设�
 
 1. **规格是业务真理源**：业务规则以全量 `SPEC.md` 或 `codespec/specs/spec.md` 为准。
 2. **设计承接规格**：实现方案以全量 `DESIGN.md` 或 `codespec/specs/design.md` 为准。
-3. **增量驱动变更**：每个需求变更先写在 `changes/{AR-ID}/`，通过阶段门后再合并到全量文档。
+3. **增量驱动变更**：每个需求变更先写在 `changes/{REQ-ID}/`，通过阶段门后再合并到全量文档。
 4. **文档服务实现**：`tasks.md` 必须能被开发者或 AI Agent 直接执行。
 5. **实现前验证**：`validation.md` 明确文档链是否可进入实现。
 
-CodeSpec 不把工具状态、平台脚本或 JSON 数据文件作为方法论核心。CLI、Agent 命令、CodeWiki 同步和静态网站都属于工具适配层。
+CodeSpec 不把工具状态、平台脚本或 JSON 数据文件作为方法论核心。CLI、Agent 命令、本地生成和静态网站都属于工具适配层。
 
 ## 2. 方法论分层
 
@@ -559,7 +559,7 @@ CodeSpec 不把工具状态、平台脚本或 JSON 数据文件作为方法论�
 工具层可以实现：
 
 1. CLI 流程推进。
-2. 平台同步脚本。
+2. 本地自动化脚本。
 3. Agent prompt 或 command。
 4. 本地运行时状态。
 5. 可视化网页。
@@ -576,14 +576,14 @@ CodeSpec 不把工具状态、平台脚本或 JSON 数据文件作为方法论�
 SPEC.md
 DESIGN.md
 changes/
-  {AR-ID}/
+  {REQ-ID}/
     proposal.md
     delta-spec.md
     delta-design.md
     tasks.md
     validation.md
 archive/
-  {date}-{AR-ID}/
+  {date}-{REQ-ID}/
 ```
 
 ### 3.2 产业化模式
@@ -596,7 +596,7 @@ codespec/
     spec.md
     design.md
   changes/
-    {AR-ID}/
+    {REQ-ID}/
       proposal.md
       delta-spec.md
       delta-design.md
@@ -658,7 +658,7 @@ Design 不应重新定义业务真理。若 Design 与 Spec 冲突，除非 Spec
 
 ### 4.3 增量文档链
 
-每个 `changes/{AR-ID}/` 固定包含以下阶段产物：
+每个 `changes/{REQ-ID}/` 固定包含以下阶段产物：
 
 | 阶段 | 文件 | 关注点 | 阶段目标 |
 |------|------|--------|----------|
@@ -670,14 +670,14 @@ Design 不应重新定义业务真理。若 Design 与 Spec 冲突，除非 Spec
 
 ## 5. 生命周期
 
-### 5.1 阶段 0：AR 输入
+### 5.1 阶段 0：需求输入
 
-输入是一个需求条目，通常使用 `AR{date-or-id}-{slug}` 命名，例如 `AR20251015-incremental-analysis`。
+输入是一个需求条目，通常使用 `REQ{date-or-id}-{slug}` 命名，例如 `REQ20251015-incremental-analysis`。
 
 产物：
 
 ```text
-codespec/changes/{AR-ID}/
+codespec/changes/{REQ-ID}/
 ```
 
 最小规则：
@@ -820,13 +820,13 @@ codespec/changes/{AR-ID}/
 
 1. 将 `delta-spec.md` 合并到全量 Spec。
 2. 将 `delta-design.md` 合并到全量 Design。
-3. 将变更目录归档到 `archives/{date}-{AR-ID}`。
+3. 将变更目录归档到 `archives/{date}-{REQ-ID}`。
 4. 将代码和文档一起提交。
 
 当前 CLI 归档路径为：
 
 ```text
-codespec/changes/archives/{YYYY-MM-DD}-{AR-ID}/
+codespec/changes/archives/{YYYY-MM-DD}-{REQ-ID}/
 ```
 
 归档后仍需确保全量文档已经成为最新权威版本。
@@ -857,9 +857,9 @@ codespec/changes/archives/{YYYY-MM-DD}-{AR-ID}/
 
 | 角色 | 主要责任 |
 |------|----------|
-| SE | 组件规格、业务规则、需求澄清、Spec 增量 |
+| 产品经理 / 业务分析人员 | 组件规格、业务规则、需求澄清、Spec 增量 |
 | 产品 | 业务目标、价值、优先级、验收口径 |
-| MDE / 架构师 | Design 增量、架构决策、技术风险 |
+| 技术负责人 / 架构师 | Design 增量、架构决策、技术风险 |
 | 开发 | 任务拆解、实现、测试 |
 | QA | 验证口径、异常场景、质量风险 |
 | AI Agent | 辅助澄清、生成文档、执行任务，但不替代用户确认 |
@@ -932,7 +932,7 @@ codespec/changes/archives/{YYYY-MM-DD}-{AR-ID}/
 │                           增量变更区（需求驱动）                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│   changes/{AR-ID}/                                                           │
+│   changes/{REQ-ID}/                                                           │
 │   ├── proposal.md         ← 阶段1: 需求澄清（Why + What Changes）            │
 │   ├── delta-spec.md       ← 阶段2: Spec增量设计（ADDED/MODIFIED/REMOVED）    │
 │   ├── delta-design.md     ← 阶段3: Design增量设计（技术方案）                │
@@ -947,7 +947,7 @@ codespec/changes/archives/{YYYY-MM-DD}-{AR-ID}/
 │                           归档区（历史追溯）                                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│   archive/{date}-{AR-ID}/                                                    │
+│   archive/{date}-{REQ-ID}/                                                    │
 │   └── [完整的变更提案副本]                                                   │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -957,14 +957,14 @@ codespec/changes/archives/{YYYY-MM-DD}-{AR-ID}/
 
 ## 详细阶段说明
 
-### 阶段0: AR输入
+### 阶段0: 需求输入
 
-**来源**：IPD系统设计阶段的分配需求（AR）
+**来源**：产品或工程需求池中的需求条目
 
-**触发**：创建 `changes/{AR-ID}/` 目录
+**触发**：创建 `changes/{REQ-ID}/` 目录
 
 ```bash
-mkdir -p changes/AR20240101-feature-name
+mkdir -p changes/REQ20240101-feature-name
 ```
 
 ---
@@ -978,7 +978,7 @@ mkdir -p changes/AR20240101-feature-name
 - What Changes - 功能清单、用户故事、优先级
 - Impact - 影响范围、破坏性变更、依赖关系
 
-**责任人**：SE + 产品
+**责任人**：产品经理 + 业务分析人员
 
 **评审**：需求评审会
 
@@ -998,7 +998,7 @@ mkdir -p changes/AR20240101-feature-name
 
 **关注点**：What & Why（业务规则、数据约束、DFX红线）
 
-**责任人**：SE
+**责任人**：产品经理
 
 **评审**：Spec评审
 
@@ -1019,7 +1019,7 @@ mkdir -p changes/AR20240101-feature-name
 
 **关注点**：How（怎么实现）
 
-**责任人**：MDE / 架构师
+**责任人**：技术负责人 / 架构师
 
 **评审**：设计评审
 
@@ -1039,7 +1039,7 @@ mkdir -p changes/AR20240101-feature-name
 
 **用途**：作为 AI Agent（Claude Code/Cursor）的输入
 
-**责任人**：MDE / 开发
+**责任人**：技术负责人 / 开发工程师
 
 **模板**：[templates/delta/tasks.md](../templates/delta/tasks.md)
 
@@ -1058,7 +1058,7 @@ mkdir -p changes/AR20240101-feature-name
 
 **关注点**：文档链可追溯、无明显断点、可进入实现
 
-**责任人**：SE / MDE / QA
+**责任人**：产品经理 / 技术负责人 / 测试工程师
 
 **模板**：[templates/delta/validation.md](../templates/delta/validation.md)
 
@@ -1084,14 +1084,14 @@ mkdir -p changes/AR20240101-feature-name
 **活动**：
 - `delta-spec.md` 合并到 `SPEC.md`（全量刷新）
 - `delta-design.md` 合并到 `DESIGN.md`（全量刷新）
-- 变更提案归档到 `archive/{date}-{AR-ID}/`
+- 变更提案归档到 `archive/{date}-{REQ-ID}/`
 - 代码与文档原子化提交
 
 **责任人**：Committer
 
 ```bash
 # 归档命令示例
-mv changes/AR20240101-feature-name archive/20240115-AR20240101-feature-name
+mv changes/REQ20240101-feature-name archive/20240115-REQ20240101-feature-name
 ```
 
 ---
@@ -1109,11 +1109,11 @@ mv changes/AR20240101-feature-name archive/20240115-AR20240101-feature-name
 ## 文档流转关系
 
 ```
-                              AR（分配需求）输入
+                              需求输入
                                      │
                                      ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                     changes/{AR-ID}/ 增量变更区                               │
+│                     changes/{REQ-ID}/ 增量变更区                               │
 │                                                                               │
 │  proposal.md ─▶ delta-spec.md ─▶ delta-design.md ─▶ tasks.md ─▶ validation.md│
 │      Why          ADDED/MODIFIED       Decisions        可执行项        覆盖检查 │
@@ -1151,14 +1151,14 @@ mv changes/AR20240101-feature-name archive/20240115-AR20240101-feature-name
 
 | 阶段 | 文档 | 责任人 | 关注点 |
 |------|------|--------|--------|
-| 0. AR输入 | 创建changes目录 | SE | 需求来源 |
-| 1. 需求澄清 | `proposal.md` | SE + 产品 | Why + What |
-| 2. Spec增量设计 | `delta-spec.md` | SE | What & Why（业务规则） |
-| 3. Design增量设计 | `delta-design.md` | MDE/架构师 | How（技术方案） |
-| 4. 任务拆解 | `tasks.md` | MDE/开发 | 可执行任务 |
-| 5. 一致性验证 | `validation.md` | SE / MDE / QA | 文档链覆盖与冲突检查 |
+| 0. 需求输入 | 创建 changes 目录 | 产品经理 / 业务分析人员 | 需求来源 |
+| 1. 需求澄清 | `proposal.md` | 产品经理 + 业务分析人员 | Why + What |
+| 2. Spec增量设计 | `delta-spec.md` | 产品经理 | What & Why（业务规则） |
+| 3. Design增量设计 | `delta-design.md` | 技术负责人/架构师 | How（技术方案） |
+| 4. 任务拆解 | `tasks.md` | 技术负责人/开发工程师 | 可执行任务 |
+| 5. 一致性验证 | `validation.md` | 产品经理 / 技术负责人 / 测试工程师 | 文档链覆盖与冲突检查 |
 | 6. 开发实现 | 代码 | 开发/AI Agent | 实现 |
-| 7. 合并归档 | SPEC.md + DESIGN.md 刷新 | Committer | 全量同步 |
+| 7. 合并归档 | SPEC.md + DESIGN.md 刷新 | Committer | 全量刷新 |
 | 8. 代码与规格验证 | 验证报告 | QA | 代码与Spec一致 |
 
 ---
@@ -1184,10 +1184,9 @@ mv changes/AR20240101-feature-name archive/20240115-AR20240101-feature-name
 4. **`guidelines/`**：记录项目级编码、测试、安全和评审规范，供人和 AI 执行任务时引用。
 5. **阶段门**：将 proposal confirmed、delta-spec reviewed、delta-design reviewed、tasks executable、validation passed 作为进入下一阶段的确认点。
 
-`data/*.json`、`state.json`、`skills/`、平台同步脚本和子代理调度协议属于工具适配层。CodeSpec 不强制这些文件存在，也不允许它们替代 Markdown 规格与设计文档。
+`data/*.json`、`state.json`、`skills/`、本地自动化脚本和子代理调度协议属于工具适配层。CodeSpec 不强制这些文件存在，也不允许它们替代 Markdown 规格与设计文档。
 # CodeSpec CLI 详细 Spec
 
-本文档描述当前仓库中真实存在的 CodeSpec CLI 规格。复刻时应以源码行为为准，核心文件包括 `package.json`、`bin/codespec.js`、`src/cli.js`、`src/project.js`、`src/state.js`、`src/validation.js`、`src/codewiki.js`、`src/integrations.js` 和 `test/cli.test.js`。
 
 ## 1. 当前实现状态
 
@@ -1197,7 +1196,7 @@ mv changes/AR20240101-feature-name archive/20240115-AR20240101-feature-name
 
 | 项 | 值 |
 |----|----|
-| 包名 | `@company/codespec-cli` |
+| 包名 | `codespec-community` |
 | 命令名 | `codespec` |
 | 版本 | `0.1.0` |
 | Node 要求 | `>=20.0.0` |
@@ -1212,7 +1211,7 @@ CLI 的职责：
 3. 校验目录和文档链。
 4. 归档完成的变更。
 5. 安装 opencode、Claude Code 和 Codex 集成命令或技能。
-6. 同步 CodeWiki 全量 Spec / Design。
+6. 生成候选 Spec / Design，并在用户确认后应用到权威目录。
 
 CLI 不负责：
 
@@ -1268,17 +1267,7 @@ CLI 不负责：
 | `--path <dir>` | 指定目标项目目录 |
 | `--change <name>` | 指定变更目录 |
 | `--integration <name>` | init 时安装集成，默认 `all`，支持 `opencode` / `claude-code` / `codex` / `all` / `none` |
-| `--script-dir <dir>` | CodeWiki 脚本目录 |
-| `--token <token>` | CodeWiki token |
-| `--project-url <url>` | CodeWiki 或 CodeHub 项目地址 |
-| `--codewiki-project-url <url>` | `--project-url` 别名 |
-| `--project-id <id>` | CodeWiki 项目 ID |
-| `--codewiki-project-id <id>` | `--project-id` 别名 |
-| `--no-codewiki` | init 时跳过 CodeWiki 配置引导 |
-| `--no-persist-env` | 不写入用户环境变量 |
-| `--generate` | sync 时允许触发生成全量文档 |
-| `--max-lag <n>` | sync 允许落后最新提交的最大 commits 数 |
-| `--commit-scan-limit <n>` | sync 扫描 commits 数上限 |
+
 
 解析规则：
 
@@ -1335,10 +1324,9 @@ codespec/
 6. `paths.changes: codespec/changes`
 7. `paths.archives: codespec/changes/archives`
 8. `paths.runtime: .codespec-cli`
-9. `change.id_prefix: AR`
+9. `change.id_prefix: REQ`
 10. `change.single_active_change: false`
 11. `validation.require_validation_doc: true`
-12. `codewiki.token_env: CODESPEC_CODEWIKI_TOKEN`
 
 ## 5. 阶段模型
 
@@ -1363,7 +1351,7 @@ codespec/changes/{change}/.codespec-state.json
 ```json
 {
   "version": 1,
-  "change": "AR202604270001-user-login",
+  "change": "REQ202604270001-user-login",
   "currentStage": "proposal",
   "stages": {
     "proposal": {
@@ -1395,12 +1383,10 @@ codespec/changes/{change}/.codespec-state.json
 
 ### 6.1 `codespec init [path]`
 
-用途：幂等补齐项目结构、配置、`.gitignore`、集成和 CodeWiki 引导。
 
 输入：
 
 ```bash
-codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--token <token>] [--project-url <url>] [--project-id <id>]
 ```
 
 行为：
@@ -1413,9 +1399,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
 6. 创建或按 `--force` 更新 `.codespec-cli/config.yaml`。
 7. 更新 `.gitignore`。
 8. 默认安装全部 Agent 集成；`--integration none` 跳过。
-9. 默认进入 CodeWiki token 配置和同步引导；`--no-codewiki` 跳过。
 10. 不复制 `spec.md`、`design.md`、`proposal.md` 等业务内容模板。
-11. 若本地已存在全量 `spec.md` 或 `design.md`，不覆盖并提示手动 `codespec sync`。
 
 典型 JSON 输出：
 
@@ -1426,7 +1410,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
   "skipped": [".codespec-cli/config.yaml"],
   "items": ["已补齐：", "  codespec/specs"],
   "message": "已检查 CodeSpec 项目：D:/repo",
-  "next": ["codespec start AR202604270001-feature-name", "在 opencode、Claude Code 或 Codex 中进入 CodeSpec 命令/技能"]
+  "next": ["codespec start REQ202604270001-feature-name", "在 opencode、Claude Code 或 Codex 中进入 CodeSpec 命令/技能"]
 }
 ```
 
@@ -1445,7 +1429,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
 变更名规范化：
 
 1. 若输入以至少两个字母加至少六位数字开头，则直接 slugify。
-2. 否则生成 `AR{YYYYMMDDHHmm}-{slug}`。
+2. 否则生成 `REQ{YYYYMMDDHHmm}-{slug}`。
 3. 删除或替换路径非法字符。
 
 ### 6.3 `codespec list`
@@ -1475,7 +1459,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
 模板判定包括：
 
 1. 未解决的 `[占位符]`。
-2. 常见模板标记，例如 `[AR编号]`、`F-01 | [功能名]`、`US-01`。
+2. 常见模板标记，例如 `[需求编号]`、`F-01 | [功能名]`、`US-01`。
 3. 文件内容仅为 `# {fileName}`。
 
 ### 6.5 `codespec go [change]` / `codespec next [change]`
@@ -1489,7 +1473,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
   "ok": false,
   "code": "NO_ACTIVE_CHANGE",
   "message": "未发现活动的 CodeSpec 变更。",
-  "next": ["codespec start AR202604270001-feature-name"]
+  "next": ["codespec start REQ202604270001-feature-name"]
 }
 ```
 
@@ -1498,14 +1482,14 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
 ```json
 {
   "ok": true,
-  "change": "AR202604270001-user-login",
+  "change": "REQ202604270001-user-login",
   "stage": {
     "index": 1,
     "total": 5,
     "key": "proposal",
     "name": "需求澄清",
     "status": "pending",
-    "file": "codespec/changes/AR202604270001-user-login/proposal.md",
+    "file": "codespec/changes/REQ202604270001-user-login/proposal.md",
     "agentCommand": "/codespec.proposal",
     "entryCommand": "/codespec",
     "objective": "明确业务目标、范围、约束、非目标和验收标准。"
@@ -1522,7 +1506,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
 | `open_agent_stage` | Agent 应处理当前阶段 |
 | `await_user_accept` | 阶段文档已生成，等待用户确认 |
 | `complete_previous_stage` | 前序阶段未完成 |
-| `done` | 所有阶段已确认，可执行完成归档 |
+| `implementation` | 文档链已验证，可按 `tasks.md` 执行实现；实现完成并验证通过后才能归档 |
 
 ### 6.6 `codespec accept [change]`
 
@@ -1540,7 +1524,7 @@ codespec init [path] [--force] [--integration <name|none>] [--no-codewiki] [--to
 ```json
 {
   "ok": true,
-  "change": "AR202604270001-user-login",
+  "change": "REQ202604270001-user-login",
   "acceptedStage": "proposal",
   "acceptedLabel": "需求澄清",
   "nextStage": {},
@@ -1588,7 +1572,9 @@ finding 结构：
 
 ### 6.10 `codespec done [change]`
 
-用途：校验并归档已完成变更。
+用途：实现完成并验证通过后，校验并归档已完成变更。
+
+`validation.md` 确认后只表示文档链允许进入实现，不表示实现已经完成。Agent 或开发者必须先按 `tasks.md` 完成代码、测试和必要文档更新，并运行约定验证后，才能执行 `done`。
 
 行为：
 
@@ -1610,6 +1596,8 @@ finding 结构：
 ### 6.11 `codespec archive [change]`
 
 用途：把活动变更移动到归档目录。
+
+`archive` 是收尾动作，不是实现前验证动作。除非显式使用 `--force`，调用者应确保实现和验证已经完成。
 
 默认规则：
 
@@ -1669,114 +1657,6 @@ codex -> .agents/skills
 4. `--force` 可强制删除。
 5. 删除 manifest。
 
-### 6.15 `codespec codewiki setup`
-
-用途：配置 CodeWiki token、脚本目录和项目地址。
-
-输入：
-
-```bash
-codespec codewiki setup --token <token> --script-dir <dir> --project-url <url> --no-persist-env
-```
-
-行为：
-
-1. Windows 上默认使用 `setx` 写入用户环境变量。
-2. `--no-persist-env` 只影响当前进程，不持久化 token。
-3. token 不写入仓库文件。
-4. `.codespec-cli/codewiki.json` 只记录 token 环境变量名、脚本目录、项目 URL 等非敏感信息。
-
-token 环境变量：
-
-```text
-CODESPEC_CODEWIKI_TOKEN
-```
-
-脚本目录环境变量：
-
-```text
-CODESPEC_CODEWIKI_SCRIPTS
-```
-
-### 6.16 `codespec sync` / `codespec codewiki pull`
-
-用途：同步真实全量 `codespec/specs/spec.md` 和 `codespec/specs/design.md`。
-
-项目定位规则：
-
-1. 优先使用 `--project-id`。
-2. 或从 `--project-url` 提取 CodeWiki 项目 ID。
-3. 或从 `--project-url` / Git origin 推导 CodeHub URL。
-4. 从 CodeHub URL 提取仓库名。
-5. 查询 CodeWiki 可见项目并按分数选择候选。
-
-候选评分：
-
-1. CodeWiki `git_url` 与 Git origin 一致：加 100。
-2. 项目名与仓库名完全一致：加 50。
-3. 项目名包含仓库名：加 20。
-4. 同分按返回顺序。
-
-同步规则：
-
-1. 必须配置 token。
-2. 校验 CodeWiki `git_ref` 与当前 Git 分支；不匹配则停止。
-3. 默认只同步已有全量文档。
-4. 若没有现成 design，除非 `--generate`，否则报错并提示。
-5. 默认扫描最近最多 500 个 commits。
-6. `init` 自动同步时默认只接受落后最新提交不超过 20 commits 的文档。
-7. 已存在本地全量文档时，未加 `--force` 不覆盖。
-8. spec 优先选择与 design version 绑定的版本；找不到时回退项目最近已有 spec 并提示。
-
-关键选项：
-
-| 选项 | 默认 | 含义 |
-|------|------|------|
-| `--generate` | false | 允许触发 CodeWiki 生成 design/spec |
-| `--max-lag <n>` | 20 | 自动同步允许落后 commits 数 |
-| `--commit-scan-limit <n>` | 500 | 扫描 commits 上限 |
-| `--force` | false | 覆盖本地已有全量文档 |
-
-成功输出字段：
-
-```json
-{
-  "action": "pull",
-  "provider": "codewiki-api",
-  "codehub": {},
-  "project": {},
-  "designVersionId": "design-1",
-  "commitId": "commit-doc",
-  "latestCommitId": "commit-latest",
-  "lagCommits": 2,
-  "inspectedCommits": 3,
-  "returnedCommits": 50,
-  "specFallback": false,
-  "synced": ["codespec/specs/spec.md", "codespec/specs/design.md"],
-  "message": "CodeWiki 同步完成，已同步真实全量 spec.md / design.md..."
-}
-```
-
-### 6.17 `codespec codewiki push|report|mr`
-
-用途：兼容外部 Python 脚本适配入口。
-
-动作到脚本映射：
-
-| action | script |
-|--------|--------|
-| `push` | `md_commit_push.py` |
-| `report` | `generate_sync_report.py` |
-| `mr` | `create_merge_request.py` |
-
-行为：
-
-1. 查找脚本目录。
-2. 校验 token。
-3. 调用 `python <script> ...args`。
-4. 透传 stdout/stderr，但会隐藏 Bearer token。
-5. 非 0 退出码转成中文诊断错误。
-
 ## 7. 输出规范
 
 ### 7.1 人类可读输出
@@ -1793,7 +1673,6 @@ CODESPEC_CODEWIKI_SCRIPTS
 2. 有问题逐行输出：
 
 ```text
-[warn] CS003 codespec/specs/spec.md - 缺少 codespec/specs/spec.md；请从 CodeWiki 同步或导入真实全量 spec.md。
 ```
 
 ### 7.2 JSON 输出
@@ -1831,7 +1710,6 @@ CODESPEC_CODEWIKI_SCRIPTS
 |------|------|
 | `NO_ACTIVE_CHANGE` | 没有活动变更 |
 | `VALIDATION_FAILED` | done 前校验存在 error |
-| `CODESPEC_SYNC_OVERWRITE_REQUIRED` | 同步会覆盖本地全量文档但未授权 |
 | `CLI_ERROR` | 顶层异常 |
 
 ## 9. Agent 集成契约
@@ -1915,8 +1793,6 @@ Agent 行为契约：
 
 ## 11. 安全与敏感信息
 
-1. CodeWiki token 只通过环境变量保存。
-2. `.codespec-cli/codewiki.json` 不写 token 明文。
 3. Git remote 中的用户名密码会被清理。
 4. 输出中的 Bearer token 会被替换为 `<redacted>`。
 5. 文档中不应写入 token。
@@ -1927,7 +1803,7 @@ Agent 行为契约：
 
 - [ ] `codespec init` 幂等创建目录和配置。
 - [ ] `codespec init` 不复制内容模板到业务目录。
-- [ ] `codespec start AR...` 只创建变更目录和 `.codespec-state.json`。
+- [ ] `codespec start REQ...` 只创建变更目录和 `.codespec-state.json`。
 - [ ] `codespec status` 能识别 pending、blocked、draft、template、confirmed。
 - [ ] `codespec go --json` 返回当前阶段 payload。
 - [ ] `codespec accept --json` 能确认非模板阶段文件并推进。
@@ -1937,7 +1813,6 @@ Agent 行为契约：
 - [ ] `codespec archive` 将变更移动到 `codespec/changes/archives/{date}-{change}`。
 - [ ] `codespec integration install opencode|claude-code|codex|all` 安装对应命令或技能并写 manifest。
 - [ ] `codespec integration remove opencode|claude-code|codex|all` 保留被用户修改的文件。
-- [ ] `codespec sync` 在缺 token、分支不匹配、覆盖未授权等场景给出明确错误。
 - [ ] 所有检查类命令支持 `--json`。
 
 ## 13. 测试建议
@@ -1952,5 +1827,5 @@ Agent 行为契约：
 6. validate 校验码。
 7. archive 成功与失败路径。
 8. integration install/remove。
-9. codewiki token 缺失、项目匹配、覆盖保护、生成开关。
+9. 生成配置、覆盖保护、候选文档质量检查。
 10. JSON 输出和退出码。
