@@ -1,4 +1,4 @@
-# CodeSpec 模板全集
+# MetaSpec 模板全集
 
 本文档由 `templates/` 下所有 Markdown 模板拼接生成。
 

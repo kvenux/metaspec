@@ -19,50 +19,50 @@ const INTEGRATIONS = {
 
 function opencodeFiles() {
   return {
-  "codespec.md": opencodeCommand("codespec", "CodeSpec 主流程", mainFlowBody()),
-  "codespec.proposal.md": opencodeCommand("codespec.proposal", "CodeSpec 需求澄清", stageCommandBody(stageDefinitions.proposal)),
-  "codespec.delta-spec.md": opencodeCommand("codespec.delta-spec", "CodeSpec Spec 增量设计", stageCommandBody(stageDefinitions["delta-spec"])),
-  "codespec.delta-design.md": opencodeCommand("codespec.delta-design", "CodeSpec Design 增量设计", stageCommandBody(stageDefinitions["delta-design"])),
-  "codespec.tasks.md": opencodeCommand("codespec.tasks", "CodeSpec 任务拆解", stageCommandBody(stageDefinitions.tasks)),
-  "codespec.validation.md": opencodeCommand("codespec.validation", "CodeSpec 一致性验证", stageCommandBody(stageDefinitions.validation))
+  "metaspec.md": opencodeCommand("metaspec", "MetaSpec 主流程", mainFlowBody()),
+  "metaspec.proposal.md": opencodeCommand("metaspec.proposal", "MetaSpec 需求澄清", stageCommandBody(stageDefinitions.proposal)),
+  "metaspec.delta-spec.md": opencodeCommand("metaspec.delta-spec", "MetaSpec Spec 增量设计", stageCommandBody(stageDefinitions["delta-spec"])),
+  "metaspec.delta-design.md": opencodeCommand("metaspec.delta-design", "MetaSpec Design 增量设计", stageCommandBody(stageDefinitions["delta-design"])),
+  "metaspec.tasks.md": opencodeCommand("metaspec.tasks", "MetaSpec 任务拆解", stageCommandBody(stageDefinitions.tasks)),
+  "metaspec.validation.md": opencodeCommand("metaspec.validation", "MetaSpec 一致性验证", stageCommandBody(stageDefinitions.validation))
   };
 }
 
 function commands() {
   return [
   {
-    id: "codespec",
-    title: "CodeSpec",
-    description: "Inspect the current CodeSpec change and route to the active stage.",
+    id: "metaspec",
+    title: "MetaSpec",
+    description: "Inspect the current MetaSpec change and route to the active stage.",
     body: mainFlowBody()
   },
   {
-    id: "codespec-proposal",
-    title: "CodeSpec Proposal",
-    description: "Write the proposal stage for a CodeSpec change.",
+    id: "metaspec-proposal",
+    title: "MetaSpec Proposal",
+    description: "Write the proposal stage for a MetaSpec change.",
     body: stageCommandBody(stageDefinitions.proposal)
   },
   {
-    id: "codespec-delta-spec",
-    title: "CodeSpec Delta Spec",
-    description: "Write business-rule delta specifications for a CodeSpec change.",
+    id: "metaspec-delta-spec",
+    title: "MetaSpec Delta Spec",
+    description: "Write business-rule delta specifications for a MetaSpec change.",
     body: stageCommandBody(stageDefinitions["delta-spec"])
   },
   {
-    id: "codespec-delta-design",
-    title: "CodeSpec Delta Design",
-    description: "Write implementation delta design for a CodeSpec change.",
+    id: "metaspec-delta-design",
+    title: "MetaSpec Delta Design",
+    description: "Write implementation delta design for a MetaSpec change.",
     body: stageCommandBody(stageDefinitions["delta-design"])
   },
   {
-    id: "codespec-tasks",
-    title: "CodeSpec Tasks",
-    description: "Break a CodeSpec change into executable implementation and verification tasks.",
+    id: "metaspec-tasks",
+    title: "MetaSpec Tasks",
+    description: "Break a MetaSpec change into executable implementation and verification tasks.",
     body: stageCommandBody(stageDefinitions.tasks)
   },
   {
-    id: "codespec-validation",
-    title: "CodeSpec Validation",
+    id: "metaspec-validation",
+    title: "MetaSpec Validation",
     description: "Validate coverage from proposal to tasks before implementation.",
     body: stageCommandBody(stageDefinitions.validation)
   }
@@ -76,7 +76,7 @@ const stageDefinitions = {
     total: 5,
     name: "需求澄清",
     file: "proposal.md",
-    command: "/codespec.proposal",
+    command: "/metaspec.proposal",
     objective: "明确 Why、What、Impact、非目标、验收标准和 DFX 约束。",
     inputs: ["全量 spec.md（如存在）", "全量 design.md（如存在）", "service-context.md（如存在）", "当前 change 已有文档"],
     nextName: "Spec 增量设计",
@@ -92,12 +92,12 @@ const stageDefinitions = {
     total: 5,
     name: "Spec 增量设计",
     file: "delta-spec.md",
-    command: "/codespec.delta-spec",
+    command: "/metaspec.delta-spec",
     objective: "将 proposal 转换为可验证的业务规则增量。",
-    inputs: ["全量 codespec/specs/spec.md", "proposal.md", "已有 delta-spec.md（如存在）"],
+    inputs: ["全量 metaspec/specs/spec.md", "proposal.md", "已有 delta-spec.md（如存在）"],
     nextName: "Design 增量设计",
     artifactRule: "只写业务规则，使用 ADDED / MODIFIED / REMOVED，每条规则必须有可判定验收条件。",
-    contextRule: "如果全量 spec.md 不存在，不要伪造；提示用户先执行 codespec generate && codespec apply，或导入真实 spec.md。",
+    contextRule: "如果全量 spec.md 不存在，不要伪造；提示用户先执行 metaspec generate && metaspec apply，或导入真实 spec.md。",
     clarificationFocus: "业务规则、验收条件、状态流转、权限、数据约束、异常路径和 DFX 约束",
     generationFocus: "delta-spec 拟生成的业务规则要点",
     completionFocus: "ADDED/MODIFIED/REMOVED、验收条件和与全量 spec.md 的冲突"
@@ -108,12 +108,12 @@ const stageDefinitions = {
     total: 5,
     name: "Design 增量设计",
     file: "delta-design.md",
-    command: "/codespec.delta-design",
+    command: "/metaspec.delta-design",
     objective: "为 delta-spec 的业务规则设计实现方案。",
-    inputs: ["全量 codespec/specs/design.md", "proposal.md", "delta-spec.md", "已有 delta-design.md（如存在）"],
+    inputs: ["全量 metaspec/specs/design.md", "proposal.md", "delta-spec.md", "已有 delta-design.md（如存在）"],
     nextName: "任务拆解",
     artifactRule: "设计必须承接 delta-spec，覆盖关键决策、备选方案、风险、兼容性、数据模型、接口和发布影响。",
-    contextRule: "如果全量 design.md 不存在，不要伪造；提示用户先执行 codespec generate && codespec apply，或导入真实 design.md。",
+    contextRule: "如果全量 design.md 不存在，不要伪造；提示用户先执行 metaspec generate && metaspec apply，或导入真实 design.md。",
     clarificationFocus: "架构影响、接口契约、数据模型、兼容性、迁移、发布策略、风险和验证策略",
     generationFocus: "delta-design 拟生成的设计要点",
     completionFocus: "规格覆盖、方案取舍、风险缓解和后续 tasks 可拆解性"
@@ -124,7 +124,7 @@ const stageDefinitions = {
     total: 5,
     name: "任务拆解",
     file: "tasks.md",
-    command: "/codespec.tasks",
+    command: "/metaspec.tasks",
     objective: "将设计拆成可执行、可验证的开发任务。",
     inputs: ["全量 spec.md", "全量 design.md", "delta-spec.md", "delta-design.md", "已有 tasks.md（如存在）"],
     nextName: "一致性验证",
@@ -140,7 +140,7 @@ const stageDefinitions = {
     total: 5,
     name: "一致性验证",
     file: "validation.md",
-    command: "/codespec.validation",
+    command: "/metaspec.validation",
     objective: "检查 proposal、delta-spec、delta-design、tasks 与全量文档的覆盖和冲突。",
     inputs: ["全量 spec.md", "全量 design.md", "proposal.md", "delta-spec.md", "delta-design.md", "tasks.md"],
     nextName: "实现",
@@ -162,23 +162,25 @@ ${body}
 }
 
 function mainFlowBody() {
-  return `你正在一个使用 CodeSpec 的仓库中工作。/codespec 是用户主入口；用户进入本命令后，不应被要求在终端和 Agent 之间反复切换。
+  return `你正在一个使用 MetaSpec 的仓库中工作。/metaspec 是用户主入口；用户进入本命令后，不应被要求在终端和 Agent 之间反复切换。
 
 工作方式：
-1. 先调用 \`codespec go --json\`，读取当前 change、阶段、产物路径、nextAction、stage.inputs 和 stage.allowedWritePath。
-2. 如果 nextAction 是 \`implementation\`，展示实现阶段卡片，读取 \`tasks.md\`、\`delta-design.md\` 和 \`validation.md\`，然后执行实现与测试；不要生成新的阶段文档，也不要调用 \`codespec done\`。
-3. 根据 JSON 渲染阶段状态。首次进入、阶段切换、用户询问状态或 CLI 报错时展示 CodeSpec SDD 阶段面板；普通对话只展示轻量状态栏。
+1. 先调用 \`metaspec go --json\`，读取当前 change、阶段、产物路径、nextAction、stage.inputs 和 stage.allowedWritePath。
+2. 如果 nextAction 是 \`implementation\`，展示实现阶段卡片，读取 \`tasks.md\`、\`delta-design.md\` 和 \`validation.md\`，然后执行实现与测试；不要生成新的阶段文档，也不要调用 \`metaspec done\`。
+3. 根据 JSON 渲染阶段状态。首次进入、阶段切换、用户询问状态或 CLI 报错时展示 MetaSpec SDD 阶段面板；普通对话只展示轻量状态栏。
 4. 按当前阶段执行对应工作：需求澄清、Spec 增量设计、Design 增量设计、任务拆解或一致性验证。
 5. 每进入一个新阶段，生成阶段产物前必须至少有一轮面向用户的阶段确认或澄清；信息不足时先问问题，信息足够时也要先给出拟生成要点并请求用户回复“可以生成”。
 6. 写入阶段产物后，必须请求用户确认。用户未确认时继续修改当前阶段。
-7. 用户明确回复“确认”“下一步”或等价表达后，立即调用 \`codespec accept --json\`，不要要求用户回终端执行确认命令。
-8. 如果 \`codespec accept --json\` 返回 nextStage，不要停在“已确认/下一步是...”的提示上；必须立即进入 nextStage，展示阶段切换卡片，读取上下文，然后提出澄清问题或请求生成前确认。
-9. 如果所有文档阶段已确认，不要急着调用 \`codespec done --json\`；先进入实现阶段，按 \`tasks.md\` 执行代码变更和测试验证。只有用户明确表示实现已完成且验证通过，才询问是否归档并调用 \`codespec done --json\`。
+7. 用户明确回复“确认”“下一步”或等价表达后，立即调用 \`metaspec accept --json\`，不要要求用户回终端执行确认命令。
+8. 如果 \`metaspec accept --json\` 返回 nextStage，不要停在“已确认/下一步是...”的提示上；必须立即进入 nextStage，展示阶段切换卡片，读取上下文，然后提出澄清问题或请求生成前确认。
+9. 如果所有文档阶段已确认，不要急着调用 \`metaspec done --json\`；先进入实现阶段，按 \`tasks.md\` 执行代码变更和测试验证。只有用户明确表示实现已完成且验证通过，才询问是否归档并调用 \`metaspec done --json\`。
 
 推进规则：
 - 当前阶段的“确认/下一步”只代表确认当前产物并进入下一阶段；确认 validation 只代表文档链允许进入实现，不代表实现已完成或可以归档。
 - 每个阶段首次写入产物前，必须能在当前阶段对话中找到用户对该阶段的明确生成授权，例如“可以生成”“确认生成”“按这个生成”。
 - 只有等待用户回答澄清问题、等待用户确认阶段产物、等待用户授权归档，或实现遇到必须由用户决策的阻塞问题时，才允许停下来。
+
+${sharedClarificationGate()}
 
 ${sharedDisplayRules()}
 
@@ -186,18 +188,18 @@ ${sharedPathRules()}
 
 全量文档缺失处理：
 - proposal：可以继续澄清，但必须标注全量上下文缺失风险。
-- delta-spec：缺少全量 spec.md 时，提示先执行 \`codespec generate && codespec apply\`，或导入真实 spec.md。
-- delta-design：缺少全量 design.md 时，提示先执行 \`codespec generate && codespec apply\`，或导入真实 design.md。
+- delta-spec：缺少全量 spec.md 时，提示先执行 \`metaspec generate && metaspec apply\`，或导入真实 spec.md。
+- delta-design：缺少全量 design.md 时，提示先执行 \`metaspec generate && metaspec apply\`，或导入真实 design.md。
 - tasks / validation：缺少全量 spec.md 或 design.md 时，应阻断或明确标记为高风险，不要伪造上下文。
 
 约束：
 1. 不修改实现代码。
-2. 不直接修改 \`.codespec-state.json\`。
+2. 不直接修改 \`.metaspec-state.json\`。
 3. 只有 CLI 可以推进阶段状态。
 4. 保留用户已写内容，除非用户明确要求重写。
 5. 阶段产物不应保留模板占位符。
-6. 禁止向 \`codespec/\` 写入空模板文档。
-7. 禁止创建新的 \`codespec/changes/*\` 目录；变更目录只能由 \`codespec start\` 创建。
+6. 禁止向 \`metaspec/\` 写入空模板文档。
+7. 禁止创建新的 \`metaspec/changes/*\` 目录；变更目录只能由 \`metaspec start\` 创建。
 `;
 }
 
@@ -205,16 +207,16 @@ function stageCommandBody(stage) {
   return `当前阶段：${stage.index}/${stage.total} ${stage.key} / ${stage.name}
 
 强制流程：
-1. 先调用 \`codespec go --json\`，读取当前活动变更、stage.key、stage.file、stage.allowedWritePath 和 stage.inputs。
-2. 如果当前阶段不是 \`${stage.key}\`，停止并提示用户回到 \`/codespec\` 主流程。
-3. 只能写入 \`codespec go --json\` 返回的 stage.allowedWritePath，禁止自行推导或创建 \`codespec/changes/{change}\`。
+1. 先调用 \`metaspec go --json\`，读取当前活动变更、stage.key、stage.file、stage.allowedWritePath 和 stage.inputs。
+2. 如果当前阶段不是 \`${stage.key}\`，停止并提示用户回到 \`/metaspec\` 主流程。
+3. 只能写入 \`metaspec go --json\` 返回的 stage.allowedWritePath，禁止自行推导或创建 \`metaspec/changes/{change}\`。
 4. 先展示本阶段面板。
 5. 写入前必须至少完成一轮本阶段用户交互；即使上下文看似充足，也要先列出${stage.generationFocus}，并请求用户回复“可以生成”。
 6. 用户在上一阶段回复的“确认/下一步”只代表进入本阶段，不代表授权生成 \`${stage.file}\`。
 7. 在用户明确回复“可以生成”“确认生成”“按这个生成”或等价表达前，禁止直接生成文档。
 8. 写入 \`${stage.file}\` 后，必须说明相对路径，并给出清晰确认指引。
-9. 用户确认后，调用 \`codespec accept --json\`，不要要求用户回终端执行确认命令。
-10. 如果确认 \`validation.md\` 后返回 completed/readyForImplementation，不要调用 \`codespec done\`；提示文档链可进入实现，并回到 \`/codespec\` 主流程执行实现。
+9. 用户确认后，调用 \`metaspec accept --json\`，不要要求用户回终端执行确认命令。
+10. 如果确认 \`validation.md\` 后返回 completed/readyForImplementation，不要调用 \`metaspec done\`；提示文档链可进入实现，并回到 \`/metaspec\` 主流程执行实现。
 
 阶段目标：
 ${stage.objective}
@@ -232,8 +234,10 @@ ${stage.inputs.map((input) => `- ${input}`).join("\n")}
 4. 每轮最多问 3 个澄清问题，问题必须说明为什么会影响当前阶段产物。
 5. 用户回复后要明确说明将如何影响 \`${stage.file}\`。
 6. 不修改实现代码。
-7. 不直接修改 \`.codespec-state.json\`。
+7. 不直接修改 \`.metaspec-state.json\`。
 8. 禁止写入空模板文档。
+
+${sharedClarificationGate(stage)}
 
 完成后重点请用户检查：
 - ${stage.completionFocus}
@@ -244,12 +248,28 @@ ${sharedPathRules()}
 `;
 }
 
+function sharedClarificationGate(stage = null) {
+  const stageSpecific =
+    stage?.key === "validation"
+      ? `\nvalidation 特别规则：\n1. 必须检查 proposal、delta-spec、delta-design、tasks 中是否存在未确认决策、agent 推导决策或待确认问题。\n2. 只要存在影响范围、业务规则、数据模型、迁移、兼容性、测试可执行性的未确认决策，最终结论必须是“需修订后再实现”，不能写“允许进入实现”。\n3. 必须检查当前工作树是否存在 unrelated dirty files；如存在，记录为实现前风险，并说明是否阻断。`
+      : "";
+
+  return `澄清加强规则：
+1. 需求或阶段输入中出现以下模糊词时，必须至少提出 1 个澄清问题，不能直接进入“生成前确认”：增强、优化、完善、更清楚、更合理、最好、支持一下、避免乱、乱约、方便、简单、灵活、智能、自动、可配置、兼容、重构、性能更好。
+2. 涉及以下高影响决策时，必须显式澄清或取得用户确认，不能只靠 agent 推断：业务规则边界、异常/失败行为、数据模型或 schema、历史数据/迁移、权限与角色、外部接口、兼容性、并发一致性、测试环境、验收口径、非目标。
+3. 生成前确认必须列出“已确认决策”和“agent 推导/建议决策”。如果存在 agent 推导且会影响实现边界，必须请求用户确认该推导，不能写入阶段产物。
+4. 阶段产物必须包含或保留用户澄清记录/决策台账；每条关键决策标明来源：用户确认、现有 spec/design、代码事实、agent 推导。
+5. 待确认问题不得写成“无”，除非已经检查过模糊词、高影响决策、全量文档和当前 change 文档，且没有未确认实现边界。
+6. 如果用户只回复“确认/下一步”，这只确认已展示的阶段产物；不能倒推为确认新出现的 agent 假设。
+7. 如果问题超过 3 个，先问最会改变范围或数据模型的 1-3 个；回答后继续下一轮澄清，而不是用一次生成前确认吞掉剩余问题。${stageSpecific}`;
+}
+
 function sharedDisplayRules() {
   return `状态展示格式：
 
 完整阶段面板：
 \`\`\`text
-CodeSpec SDD · {change}
+MetaSpec SDD · {change}
 模式：澄清优先 · 用户确认 · CLI 推进
 
 流程全景：
@@ -258,20 +278,20 @@ CodeSpec SDD · {change}
 当前阶段：{index}/{total} {key} / {name}
 状态：{status}
 目标：{objective}
-产物：codespec/changes/{change}/{file}
+产物：metaspec/changes/{change}/{file}
 完成：阶段产物非模板，用户明确确认
 \`\`\`
 
 普通交互状态栏：
 \`\`\`text
-CodeSpec [{index}/{total} {key} · {name} · {status}]
+metaspec [{index}/{total} {key} · {name} · {status}]
 \`\`\`
 
 阶段切换卡片：
 \`\`\`text
 已确认 {previous_file}，状态已推进。
 
-CodeSpec SDD · {change}
+MetaSpec SDD · {change}
 [✓ 需求澄清] -> [● Spec 增量] -> [○ Design 增量] -> [○ 任务拆解] -> [○ 一致性验证]
 
 阶段已确认：
@@ -293,7 +313,7 @@ CodeSpec SDD · {change}
 \`\`\`text
 文档链已验证，可进入实现。
 
-CodeSpec SDD · {change}
+MetaSpec SDD · {change}
 [✓ 需求澄清] -> [✓ Spec 增量] -> [✓ Design 增量] -> [✓ 任务拆解] -> [✓ 一致性验证] -> [● 实现]
 
 我接下来会：
@@ -301,12 +321,12 @@ CodeSpec SDD · {change}
 2. 修改必要代码、测试和文档
 3. 运行验证命令并报告结果
 
-只有实现完成且验证通过后，才会请求你确认归档并调用 codespec done。
+只有实现完成且验证通过后，才会请求你确认归档并调用 metaspec done。
 \`\`\`
 
 澄清问题卡片：
 \`\`\`text
-CodeSpec [{index}/{total} {key} · 澄清中]
+metaspec [{index}/{total} {key} · 澄清中]
 
 Q{n}. {question}
 
@@ -320,7 +340,7 @@ Q{n}. {question}
 
 生成前确认：
 \`\`\`text
-CodeSpec [{index}/{total} {key} · 生成前确认]
+metaspec [{index}/{total} {key} · 生成前确认]
 
 我没有发现必须阻塞的问题。准备按以下要点生成 {file}：
 - {point_1}
@@ -337,7 +357,7 @@ CodeSpec [{index}/{total} {key} · 生成前确认]
 
 写入后确认：
 \`\`\`text
-已生成：codespec/changes/{change}/{file}
+已生成：metaspec/changes/{change}/{file}
 
 请确认 {file} 内容是否符合预期。
 
@@ -349,12 +369,12 @@ CodeSpec [{index}/{total} {key} · 生成前确认]
 
 function sharedPathRules() {
   return `路径约束：
-1. 必须以 \`codespec go --json\` 返回的 change、stage.key、stage.file 和 stage.allowedWritePath 作为唯一权威来源。
-2. 只能写入 \`codespec go --json\` 返回的 stage.allowedWritePath。
-3. 禁止根据用户需求标题、功能名、slug 或自然语言自行推导 \`codespec/changes/{change}\`。
-4. 禁止执行 \`mkdir codespec/changes/...\`、\`New-Item codespec/changes/...\` 或任何创建/重命名变更目录的操作。
-5. 如果 \`codespec go --json\` 没有返回活动变更，停止并提示用户先执行 \`codespec start REQ202604270001-feature-name\`。
-6. 如果发现存在没有 \`.codespec-state.json\` 的额外变更目录，停止并提示用户运行 \`codespec doctor\`，不要继续写入该目录。`;
+1. 必须以 \`metaspec go --json\` 返回的 change、stage.key、stage.file 和 stage.allowedWritePath 作为唯一权威来源。
+2. 只能写入 \`metaspec go --json\` 返回的 stage.allowedWritePath。
+3. 禁止根据用户需求标题、功能名、slug 或自然语言自行推导 \`metaspec/changes/{change}\`。
+4. 禁止执行 \`mkdir metaspec/changes/...\`、\`New-Item metaspec/changes/...\` 或任何创建/重命名变更目录的操作。
+5. 如果 \`metaspec go --json\` 没有返回活动变更，停止并提示用户先执行 \`metaspec start REQ202604270001-feature-name\`。
+6. 如果发现存在没有 \`.metaspec-state.json\` 的额外变更目录，停止并提示用户运行 \`metaspec doctor\`，不要继续写入该目录。`;
 }
 
 export function listIntegrations() {
@@ -429,7 +449,7 @@ function writeTrackedFile(file, content, files, root, options) {
 }
 
 function writeManifest(root, integration, files) {
-  writeJson(path.join(root, `.codespec-cli/manifests/integrations/${integration}.json`), {
+  writeJson(path.join(root, `.metaspec-cli/manifests/integrations/${integration}.json`), {
     integration,
     installedAt: new Date().toISOString(),
     files
@@ -479,7 +499,7 @@ export function removeIntegration(root, name, options = {}) {
     };
   }
   if (!INTEGRATIONS[name]) throw new Error(`不支持的集成：${name}`);
-  const manifestFile = path.join(root, `.codespec-cli/manifests/integrations/${name}.json`);
+  const manifestFile = path.join(root, `.metaspec-cli/manifests/integrations/${name}.json`);
   if (!fs.existsSync(manifestFile)) {
     return { ok: true, integration: name, removed: [], kept: [], message: `未发现 ${name} 集成 manifest。` };
   }

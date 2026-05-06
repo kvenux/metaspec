@@ -1,4 +1,4 @@
-# CodeSpec 模板体系详细 Spec
+# MetaSpec 模板体系详细 Spec
 
 本文档定义当前仓库模板体系的用途、结构、字段语义和复刻规则。模板源文件位于 `templates/`，示例位于 `examples/sample-project/`。
 
@@ -16,17 +16,17 @@
 
 | 类别 | 文件 | 目标位置 | 用途 |
 |------|------|----------|------|
-| 全量 | `templates/full/SPEC.md` | `SPEC.md` 或 `codespec/specs/spec.md` | 功能规格说明书 |
+| 全量 | `templates/full/SPEC.md` | `SPEC.md` 或 `metaspec/specs/spec.md` | 功能规格说明书 |
 | 全量 | `templates/full/SPEC-annotated.md` | 写作参考 | 带注释的 Spec 写作指导 |
-| 全量 | `templates/full/DESIGN.md` | `DESIGN.md` 或 `codespec/specs/design.md` | 实现设计文档 |
+| 全量 | `templates/full/DESIGN.md` | `DESIGN.md` 或 `metaspec/specs/design.md` | 实现设计文档 |
 | 增量 | `templates/delta/proposal.md` | `changes/{REQ-ID}/proposal.md` | 需求澄清 |
 | 增量 | `templates/delta/delta-spec.md` | `changes/{REQ-ID}/delta-spec.md` | Spec 增量设计 |
 | 增量 | `templates/delta/delta-design.md` | `changes/{REQ-ID}/delta-design.md` | Design 增量设计 |
 | 增量 | `templates/delta/tasks.md` | `changes/{REQ-ID}/tasks.md` | 可执行任务清单 |
 | 增量 | `templates/delta/validation.md` | `changes/{REQ-ID}/validation.md` | 一致性验证 |
-| 扩展 | `templates/extension/service-context.md` | `codespec/service-context.md` | 周边交互上下文 |
-| 扩展 | `templates/extension/guidelines/coding.md` | `codespec/guidelines/coding.md` | 项目编码规范 |
-| 扩展 | `templates/extension/guidelines/testing.md` | `codespec/guidelines/testing.md` | 项目测试规范 |
+| 扩展 | `templates/extension/service-context.md` | `metaspec/service-context.md` | 周边交互上下文 |
+| 扩展 | `templates/extension/guidelines/coding.md` | `metaspec/guidelines/coding.md` | 项目编码规范 |
+| 扩展 | `templates/extension/guidelines/testing.md` | `metaspec/guidelines/testing.md` | 项目测试规范 |
 
 ## 3. 命名规则
 
@@ -42,8 +42,8 @@ DESIGN.md
 产业化模式：
 
 ```text
-codespec/specs/spec.md
-codespec/specs/design.md
+metaspec/specs/spec.md
+metaspec/specs/design.md
 ```
 
 规则：
@@ -55,7 +55,7 @@ codespec/specs/design.md
 ### 3.2 增量目录命名
 
 ```text
-codespec/changes/{REQ-ID}/
+metaspec/changes/{REQ-ID}/
 ```
 
 推荐形式：
@@ -513,23 +513,23 @@ REQ20251015-incremental-analysis
 - [ ] Validation 给出明确进入实现结论。
 - [ ] 增量文档能合并回全量文档。
 
-# CodeSpec 方法论详细 Spec
+# MetaSpec 方法论详细 Spec
 
-本文档用于复刻当前仓库中的 CodeSpec 规格驱动开发方法。复刻时应以本文件描述的方法论为流程骨架，以 `docs/workflow.md`、`standards/codespec-standard.md`、`templates/` 和 `examples/sample-project/` 作为源材料。
+本文档用于复刻当前仓库中的 metaspec 规格驱动开发方法。复刻时应以本文件描述的方法论为流程骨架，以 `docs/workflow.md`、`standards/metaspec-standard.md`、`templates/` 和 `examples/sample-project/` 作为源材料。
 
 ## 1. 定位
 
-CodeSpec 是一种规格驱动开发方法，目标是把需求、规格、设计、任务、验证和实现串成可追溯闭环。
+MetaSpec 是一种规格驱动开发方法，目标是把需求、规格、设计、任务、验证和实现串成可追溯闭环。
 
 核心主张：
 
-1. **规格是业务真理源**：业务规则以全量 `SPEC.md` 或 `codespec/specs/spec.md` 为准。
-2. **设计承接规格**：实现方案以全量 `DESIGN.md` 或 `codespec/specs/design.md` 为准。
+1. **规格是业务真理源**：业务规则以全量 `SPEC.md` 或 `metaspec/specs/spec.md` 为准。
+2. **设计承接规格**：实现方案以全量 `DESIGN.md` 或 `metaspec/specs/design.md` 为准。
 3. **增量驱动变更**：每个需求变更先写在 `changes/{REQ-ID}/`，通过阶段门后再合并到全量文档。
 4. **文档服务实现**：`tasks.md` 必须能被开发者或 AI Agent 直接执行。
 5. **实现前验证**：`validation.md` 明确文档链是否可进入实现。
 
-CodeSpec 不把工具状态、平台脚本或 JSON 数据文件作为方法论核心。CLI、Agent 命令、本地生成和静态网站都属于工具适配层。
+metaspec 不把工具状态、平台脚本或 JSON 数据文件作为方法论核心。CLI、Agent 命令、本地生成和静态网站都属于工具适配层。
 
 ## 2. 方法论分层
 
@@ -547,12 +547,12 @@ CodeSpec 不把工具状态、平台脚本或 JSON 数据文件作为方法论�
 
 企业、多仓、微服务和 AI 协作场景推荐增加：
 
-1. `codespec/` 专用目录。
-2. `codespec/service-context.md` 周边交互上下文。
-3. `codespec/guidelines/` 编码、测试、安全和评审规范。
+1. `metaspec/` 专用目录。
+2. `metaspec/service-context.md` 周边交互上下文。
+3. `metaspec/guidelines/` 编码、测试、安全和评审规范。
 4. 阶段门确认。
-5. 归档目录 `codespec/changes/archives/`。
-6. Agent 集成入口，例如 opencode 的 `/codespec`、Claude Code 的项目命令和 Codex 的仓库技能。
+5. 归档目录 `metaspec/changes/archives/`。
+6. Agent 集成入口，例如 opencode 的 `/metaspec`、Claude Code 的项目命令和 Codex 的仓库技能。
 
 ### 2.3 Tooling Adapters
 
@@ -564,7 +564,7 @@ CodeSpec 不把工具状态、平台脚本或 JSON 数据文件作为方法论�
 4. 本地运行时状态。
 5. 可视化网页。
 
-工具层不得替代 Markdown 权威文档。尤其禁止用 `codespec/data/*.json` 作为核心规格资产。
+工具层不得替代 Markdown 权威文档。尤其禁止用 `metaspec/data/*.json` 作为核心规格资产。
 
 ## 3. 目录模式
 
@@ -591,7 +591,7 @@ archive/
 当前 CLI 和 README 推荐的复刻结构：
 
 ```text
-codespec/
+metaspec/
   specs/
     spec.md
     design.md
@@ -607,7 +607,7 @@ codespec/
     coding.md
     testing.md
   service-context.md
-.codespec-cli/
+.metaspec-cli/
   config.yaml
   manifests/
   workflows/
@@ -622,14 +622,14 @@ codespec/
 复刻规则：
 
 1. 同一项目只选择一种主结构，不维护两套互相独立的全量规格。
-2. `codespec/specs/spec.md` 和 `codespec/specs/design.md` 必须来自真实项目内容，不得用空模板冒充。
-3. `.codespec-cli/runs/`、`.codespec-cli/cache/`、`.codespec-cli/tmp/` 是运行缓存，应进入 `.gitignore`。
+2. `metaspec/specs/spec.md` 和 `metaspec/specs/design.md` 必须来自真实项目内容，不得用空模板冒充。
+3. `.metaspec-cli/runs/`、`.metaspec-cli/cache/`、`.metaspec-cli/tmp/` 是运行缓存，应进入 `.gitignore`。
 
 ## 4. 核心文档模型
 
 ### 4.1 全量 Spec
 
-文件：`SPEC.md` 或 `codespec/specs/spec.md`。
+文件：`SPEC.md` 或 `metaspec/specs/spec.md`。
 
 职责：
 
@@ -646,7 +646,7 @@ codespec/
 
 ### 4.2 全量 Design
 
-文件：`DESIGN.md` 或 `codespec/specs/design.md`。
+文件：`DESIGN.md` 或 `metaspec/specs/design.md`。
 
 职责：
 
@@ -677,7 +677,7 @@ Design 不应重新定义业务真理。若 Design 与 Spec 冲突，除非 Spec
 产物：
 
 ```text
-codespec/changes/{REQ-ID}/
+metaspec/changes/{REQ-ID}/
 ```
 
 最小规则：
@@ -826,7 +826,7 @@ codespec/changes/{REQ-ID}/
 当前 CLI 归档路径为：
 
 ```text
-codespec/changes/archives/{YYYY-MM-DD}-{REQ-ID}/
+metaspec/changes/archives/{YYYY-MM-DD}-{REQ-ID}/
 ```
 
 归档后仍需确保全量文档已经成为最新权威版本。
@@ -883,7 +883,7 @@ codespec/changes/archives/{YYYY-MM-DD}-{REQ-ID}/
 3. `delta-spec.md` 包含 ADDED / MODIFIED / REMOVED。
 4. `tasks.md` 包含测试或验证任务。
 5. `validation.md` 包含是否允许进入实现的结论。
-6. 不存在核心方法论依赖的 `codespec/data/*.json`。
+6. 不存在核心方法论依赖的 `metaspec/data/*.json`。
 7. 阶段文档顺序符合生命周期。
 8. 已确认阶段不得被后续阶段绕过。
 
@@ -900,9 +900,9 @@ codespec/changes/archives/{YYYY-MM-DD}-{REQ-ID}/
 - [ ] 为 AI Agent 明确只可在用户确认后推进阶段。
 - [ ] 让所有实现任务可追溯到 Spec / Design。
 
-# CodeSpec 工作流程
+# MetaSpec 工作流程
 
-本文档描述 CodeSpec 增量驱动开发的完整工作流程。
+本文档描述 metaspec 增量驱动开发的完整工作流程。
 
 ---
 
@@ -1178,14 +1178,14 @@ mv changes/REQ20240101-feature-name archive/20240115-REQ20240101-feature-name
 
 企业、多仓、微服务和 AI 协作场景可采用以下扩展：
 
-1. **`codespec/` 目录**：集中承载 `specs/`、`changes/`、`guidelines/` 与 `service-context.md`。
+1. **`metaspec/` 目录**：集中承载 `specs/`、`changes/`、`guidelines/` 与 `service-context.md`。
 2. **`AGENTS.md`**：作为 AI Agent 的仓库导航页，只放通用上下文和文档索引，不承载业务规则。
 3. **`service-context.md`**：记录上游、下游、外部系统、数据流和运维依赖，补足组件周边交互信息。
 4. **`guidelines/`**：记录项目级编码、测试、安全和评审规范，供人和 AI 执行任务时引用。
 5. **阶段门**：将 proposal confirmed、delta-spec reviewed、delta-design reviewed、tasks executable、validation passed 作为进入下一阶段的确认点。
 
-`data/*.json`、`state.json`、`skills/`、本地自动化脚本和子代理调度协议属于工具适配层。CodeSpec 不强制这些文件存在，也不允许它们替代 Markdown 规格与设计文档。
-# CodeSpec CLI 详细 Spec
+`data/*.json`、`state.json`、`skills/`、本地自动化脚本和子代理调度协议属于工具适配层。metaspec 不强制这些文件存在，也不允许它们替代 Markdown 规格与设计文档。
+# MetaSpec CLI 详细 Spec
 
 
 ## 1. 当前实现状态
@@ -1196,17 +1196,17 @@ mv changes/REQ20240101-feature-name archive/20240115-REQ20240101-feature-name
 
 | 项 | 值 |
 |----|----|
-| 包名 | `codespec-community` |
-| 命令名 | `codespec` |
+| 包名 | `metaspec-community` |
+| 命令名 | `metaspec` |
 | 版本 | `0.1.0` |
 | Node 要求 | `>=20.0.0` |
-| 入口 | `bin/codespec.js` |
+| 入口 | `bin/metaspec.js` |
 | 主逻辑 | `src/cli.js` |
 | 测试命令 | `npm test` |
 
 CLI 的职责：
 
-1. 初始化 CodeSpec 项目结构。
+1. 初始化 metaspec 项目结构。
 2. 创建和推进变更状态。
 3. 校验目录和文档链。
 4. 归档完成的变更。
@@ -1228,7 +1228,7 @@ CLI 不负责：
 {
   "type": "module",
   "bin": {
-    "codespec": "./bin/codespec.js"
+    "metaspec": "./bin/metaspec.js"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -1236,7 +1236,7 @@ CLI 不负责：
 }
 ```
 
-`bin/codespec.js` 行为：
+`bin/metaspec.js` 行为：
 
 1. 调用 `main(process.argv.slice(2))`。
 2. 捕获异常。
@@ -1282,7 +1282,7 @@ CLI 不负责：
 CLI 使用产业化目录模式：
 
 ```text
-codespec/
+metaspec/
   specs/
   changes/
   changes/archives/
@@ -1292,7 +1292,7 @@ codespec/
 ### 4.2 运行时目录
 
 ```text
-.codespec-cli/
+.metaspec-cli/
   config.yaml
   manifests/
   workflows/
@@ -1307,23 +1307,23 @@ codespec/
 `.gitignore` 应包含：
 
 ```text
-.codespec-cli/runs/
-.codespec-cli/cache/
-.codespec-cli/tmp/
+.metaspec-cli/runs/
+.metaspec-cli/cache/
+.metaspec-cli/tmp/
 ```
 
 ### 4.3 配置文件
 
-`.codespec-cli/config.yaml` 默认内容表达：
+`.metaspec-cli/config.yaml` 默认内容表达：
 
 1. `version: 1`
 2. `profile: industrial`
-3. `structure: codespec-dir`
-4. `paths.docs: codespec`
-5. `paths.specs: codespec/specs`
-6. `paths.changes: codespec/changes`
-7. `paths.archives: codespec/changes/archives`
-8. `paths.runtime: .codespec-cli`
+3. `structure: metaspec-dir`
+4. `paths.docs: metaspec`
+5. `paths.specs: metaspec/specs`
+6. `paths.changes: metaspec/changes`
+7. `paths.archives: metaspec/changes/archives`
+8. `paths.runtime: .metaspec-cli`
 9. `change.id_prefix: REQ`
 10. `change.single_active_change: false`
 11. `validation.require_validation_doc: true`
@@ -1334,16 +1334,16 @@ CLI 固定五个阶段：
 
 | index | key | file | agent command | label |
 |-------|-----|------|---------------|-------|
-| 1 | `proposal` | `proposal.md` | `/codespec.proposal` | 需求澄清 |
-| 2 | `delta-spec` | `delta-spec.md` | `/codespec.delta-spec` | Spec 增量设计 |
-| 3 | `delta-design` | `delta-design.md` | `/codespec.delta-design` | Design 增量设计 |
-| 4 | `tasks` | `tasks.md` | `/codespec.tasks` | 任务拆解 |
-| 5 | `validation` | `validation.md` | `/codespec.validation` | 一致性验证 |
+| 1 | `proposal` | `proposal.md` | `/metaspec.proposal` | 需求澄清 |
+| 2 | `delta-spec` | `delta-spec.md` | `/metaspec.delta-spec` | Spec 增量设计 |
+| 3 | `delta-design` | `delta-design.md` | `/metaspec.delta-design` | Design 增量设计 |
+| 4 | `tasks` | `tasks.md` | `/metaspec.tasks` | 任务拆解 |
+| 5 | `validation` | `validation.md` | `/metaspec.validation` | 一致性验证 |
 
 状态文件：
 
 ```text
-codespec/changes/{change}/.codespec-state.json
+metaspec/changes/{change}/.metaspec-state.json
 ```
 
 初始状态：
@@ -1381,7 +1381,7 @@ codespec/changes/{change}/.codespec-state.json
 
 ## 6. 命令规格
 
-### 6.1 `codespec init [path]`
+### 6.1 `metaspec init [path]`
 
 
 输入：
@@ -1391,12 +1391,12 @@ codespec/changes/{change}/.codespec-state.json
 
 行为：
 
-1. 创建 `codespec/specs`。
-2. 创建 `codespec/changes`。
-3. 创建 `codespec/changes/archives`。
-4. 创建 `codespec/guidelines`。
-5. 创建 `.codespec-cli/` 运行时目录。
-6. 创建或按 `--force` 更新 `.codespec-cli/config.yaml`。
+1. 创建 `metaspec/specs`。
+2. 创建 `metaspec/changes`。
+3. 创建 `metaspec/changes/archives`。
+4. 创建 `metaspec/guidelines`。
+5. 创建 `.metaspec-cli/` 运行时目录。
+6. 创建或按 `--force` 更新 `.metaspec-cli/config.yaml`。
 7. 更新 `.gitignore`。
 8. 默认安装全部 Agent 集成；`--integration none` 跳过。
 10. 不复制 `spec.md`、`design.md`、`proposal.md` 等业务内容模板。
@@ -1406,25 +1406,25 @@ codespec/changes/{change}/.codespec-state.json
 ```json
 {
   "root": "D:/repo",
-  "created": ["codespec/specs"],
-  "skipped": [".codespec-cli/config.yaml"],
-  "items": ["已补齐：", "  codespec/specs"],
-  "message": "已检查 CodeSpec 项目：D:/repo",
-  "next": ["codespec start REQ202604270001-feature-name", "在 opencode、Claude Code 或 Codex 中进入 CodeSpec 命令/技能"]
+  "created": ["metaspec/specs"],
+  "skipped": [".metaspec-cli/config.yaml"],
+  "items": ["已补齐：", "  metaspec/specs"],
+  "message": "已检查 metaspec 项目：D:/repo",
+  "next": ["metaspec start REQ202604270001-feature-name", "在 opencode、Claude Code 或 Codex 中进入 metaspec 命令/技能"]
 }
 ```
 
-### 6.2 `codespec start <change>` / `codespec new <change>`
+### 6.2 `metaspec start <change>` / `metaspec new <change>`
 
 用途：创建变更目录和状态文件。
 
 行为：
 
 1. 规范化变更名。
-2. 创建 `codespec/changes/{change}/`。
-3. 写入 `.codespec-state.json`。
+2. 创建 `metaspec/changes/{change}/`。
+3. 写入 `.metaspec-state.json`。
 4. 不创建 `proposal.md`。
-5. 输出下一步进入 `/codespec`。
+5. 输出下一步进入 `/metaspec`。
 
 变更名规范化：
 
@@ -1432,17 +1432,17 @@ codespec/changes/{change}/.codespec-state.json
 2. 否则生成 `REQ{YYYYMMDDHHmm}-{slug}`。
 3. 删除或替换路径非法字符。
 
-### 6.3 `codespec list`
+### 6.3 `metaspec list`
 
 用途：列出活动变更。
 
 行为：
 
-1. 读取 `codespec/changes/` 直接子目录。
+1. 读取 `metaspec/changes/` 直接子目录。
 2. 排除 `archives`。
 3. 文本模式输出“活动变更”或“没有活动变更”。
 
-### 6.4 `codespec status [change]`
+### 6.4 `metaspec status [change]`
 
 用途：查看当前变更的五阶段文档状态。
 
@@ -1462,7 +1462,7 @@ codespec/changes/{change}/.codespec-state.json
 2. 常见模板标记，例如 `[需求编号]`、`F-01 | [功能名]`、`US-01`。
 3. 文件内容仅为 `# {fileName}`。
 
-### 6.5 `codespec go [change]` / `codespec next [change]`
+### 6.5 `metaspec go [change]` / `metaspec next [change]`
 
 用途：供 Agent 获取当前阶段和下一步动作。
 
@@ -1472,8 +1472,8 @@ codespec/changes/{change}/.codespec-state.json
 {
   "ok": false,
   "code": "NO_ACTIVE_CHANGE",
-  "message": "未发现活动的 CodeSpec 变更。",
-  "next": ["codespec start REQ202604270001-feature-name"]
+  "message": "未发现活动的 metaspec 变更。",
+  "next": ["metaspec start REQ202604270001-feature-name"]
 }
 ```
 
@@ -1489,13 +1489,13 @@ codespec/changes/{change}/.codespec-state.json
     "key": "proposal",
     "name": "需求澄清",
     "status": "pending",
-    "file": "codespec/changes/REQ202604270001-user-login/proposal.md",
-    "agentCommand": "/codespec.proposal",
-    "entryCommand": "/codespec",
+    "file": "metaspec/changes/REQ202604270001-user-login/proposal.md",
+    "agentCommand": "/metaspec.proposal",
+    "entryCommand": "/metaspec",
     "objective": "明确业务目标、范围、约束、非目标和验收标准。"
   },
   "nextAction": "open_agent_stage",
-  "next": ["在 Agent 中进入 CodeSpec 命令/技能"]
+  "next": ["在 Agent 中进入 metaspec 命令/技能"]
 }
 ```
 
@@ -1508,7 +1508,7 @@ codespec/changes/{change}/.codespec-state.json
 | `complete_previous_stage` | 前序阶段未完成 |
 | `implementation` | 文档链已验证，可按 `tasks.md` 执行实现；实现完成并验证通过后才能归档 |
 
-### 6.6 `codespec accept [change]`
+### 6.6 `metaspec accept [change]`
 
 用途：确认当前阶段并自动推进。
 
@@ -1530,17 +1530,17 @@ codespec/changes/{change}/.codespec-state.json
   "nextStage": {},
   "completed": false,
   "message": "已确认 proposal，进入 Spec 增量设计。",
-  "next": ["继续在 Agent 中进入 CodeSpec 命令/技能"]
+  "next": ["继续在 Agent 中进入 metaspec 命令/技能"]
 }
 ```
 
-### 6.7 `codespec confirm <stage> [change]`
+### 6.7 `metaspec confirm <stage> [change]`
 
 用途：确认指定阶段。
 
 规则与 `accept` 相同，但阶段由参数显式指定。若缺少阶段参数，当前实现兼容为确认当前阶段。
 
-### 6.8 `codespec validate [change]`
+### 6.8 `metaspec validate [change]`
 
 用途：校验项目结构和变更文档链。
 
@@ -1556,12 +1556,12 @@ finding 结构：
 {
   "level": "error",
   "code": "CS001",
-  "path": "codespec",
-  "message": "缺少 codespec/ 目录。"
+  "path": "metaspec",
+  "message": "缺少 metaspec/ 目录。"
 }
 ```
 
-### 6.9 `codespec doctor`
+### 6.9 `metaspec doctor`
 
 用途：在 `validate` 基础上诊断本地设置。
 
@@ -1570,7 +1570,7 @@ finding 结构：
 1. `.gitignore` 是否存在。
 2. 若缺失，输出 `CSD001` 警告。
 
-### 6.10 `codespec done [change]`
+### 6.10 `metaspec done [change]`
 
 用途：实现完成并验证通过后，校验并归档已完成变更。
 
@@ -1593,7 +1593,7 @@ finding 结构：
 }
 ```
 
-### 6.11 `codespec archive [change]`
+### 6.11 `metaspec archive [change]`
 
 用途：把活动变更移动到归档目录。
 
@@ -1612,7 +1612,7 @@ finding 结构：
 1. 将 `delta-spec.md` 合并到全量 `spec.md`。
 2. 将 `delta-design.md` 合并到全量 `design.md`。
 
-### 6.12 `codespec integration list`
+### 6.12 `metaspec integration list`
 
 用途：列出支持的 Agent 集成。
 
@@ -1624,7 +1624,7 @@ claude-code -> .claude/commands + .claude/skills
 codex -> .agents/skills
 ```
 
-### 6.13 `codespec integration install opencode|claude-code|codex|all`
+### 6.13 `metaspec integration install opencode|claude-code|codex|all`
 
 用途：安装 Agent 仓库级命令文件或技能。
 
@@ -1633,19 +1633,19 @@ codex -> .agents/skills
 1. `opencode` 创建 `.opencode/command`。
 2. `claude-code` 创建 `.claude/commands` 和 `.claude/skills`。
 3. `codex` 创建 `.agents/skills`。
-4. 安装 CodeSpec 主入口和五个阶段入口：
-   - `codespec.md`
-   - `codespec.proposal.md`
-   - `codespec.delta-spec.md`
-   - `codespec.delta-design.md`
-   - `codespec.tasks.md`
-   - `codespec.validation.md`
-5. 对 Claude Code 和 Codex，阶段入口以 `codespec-*` 技能或命令形式写入。
-6. 写入 `.codespec-cli/manifests/integrations/{name}.json`。
+4. 安装 metaspec 主入口和五个阶段入口：
+   - `metaspec.md`
+   - `metaspec.proposal.md`
+   - `metaspec.delta-spec.md`
+   - `metaspec.delta-design.md`
+   - `metaspec.tasks.md`
+   - `metaspec.validation.md`
+5. 对 Claude Code 和 Codex，阶段入口以 `metaspec-*` 技能或命令形式写入。
+6. 写入 `.metaspec-cli/manifests/integrations/{name}.json`。
 7. manifest 记录每个文件路径和 sha256。
 8. 不修改 `AGENTS.md`。
 
-### 6.14 `codespec integration remove opencode|claude-code|codex|all`
+### 6.14 `metaspec integration remove opencode|claude-code|codex|all`
 
 用途：移除由 CLI 生成且未被用户修改的 Agent 集成文件。
 
@@ -1688,14 +1688,14 @@ codex -> .agents/skills
 
 | code | level | 含义 |
 |------|-------|------|
-| `CS001` | error | 缺少 `codespec/` |
-| `CS002` | error | 缺少 `codespec/specs/` |
+| `CS001` | error | 缺少 `metaspec/` |
+| `CS002` | error | 缺少 `metaspec/specs/` |
 | `CS003` | warn | 缺少全量 `spec.md` |
 | `CS004` | warn | 缺少全量 `design.md` |
-| `CS005` | error | 缺少 `codespec/changes/` |
-| `CS006` | error | 缺少 `codespec/changes/archives/` |
-| `CS007` | error | 缺少 `.codespec-cli/config.yaml` |
-| `CS008` | error | 存在禁止的 `codespec/data/*.json` |
+| `CS005` | error | 缺少 `metaspec/changes/` |
+| `CS006` | error | 缺少 `metaspec/changes/archives/` |
+| `CS007` | error | 缺少 `.metaspec-cli/config.yaml` |
+| `CS008` | error | 存在禁止的 `metaspec/data/*.json` |
 | `CS100` | error | 指定变更目录不存在 |
 | `CS102` | warn | 后序阶段文件存在但前序阶段未完成 |
 | `CS103` | warn | 阶段文件未经过用户确认 |
@@ -1736,36 +1736,36 @@ Codex 仓库级技能安装到：
 主入口：
 
 ```text
-/codespec
+/metaspec
 ```
 
 opencode 阶段入口：
 
-1. `/codespec.proposal`
-2. `/codespec.delta-spec`
-3. `/codespec.delta-design`
-4. `/codespec.tasks`
-5. `/codespec.validation`
+1. `/metaspec.proposal`
+2. `/metaspec.delta-spec`
+3. `/metaspec.delta-design`
+4. `/metaspec.tasks`
+5. `/metaspec.validation`
 
 Claude Code 阶段入口：
 
-1. `/codespec-proposal`
-2. `/codespec-delta-spec`
-3. `/codespec-delta-design`
-4. `/codespec-tasks`
-5. `/codespec-validation`
+1. `/metaspec-proposal`
+2. `/metaspec-delta-spec`
+3. `/metaspec-delta-design`
+4. `/metaspec-tasks`
+5. `/metaspec-validation`
 
-Codex 阶段入口以仓库级技能形式提供，可通过技能选择或 `$codespec`、`$codespec-proposal` 等方式调用。
+Codex 阶段入口以仓库级技能形式提供，可通过技能选择或 `$metaspec`、`$metaspec-proposal` 等方式调用。
 
 Agent 行为契约：
 
-1. 先调用 `codespec go --json`。
+1. 先调用 `metaspec go --json`。
 2. 根据返回的阶段处理当前文档。
 3. 每轮最多问 3 个澄清问题。
-4. 用户未明确确认前不调用 `codespec accept --json`。
+4. 用户未明确确认前不调用 `metaspec accept --json`。
 5. 写入阶段产物后必须输出相对路径。
 6. 只写当前阶段产物。
-7. 不直接修改 `.codespec-state.json`。
+7. 不直接修改 `.metaspec-state.json`。
 8. 不修改实现代码。
 9. 不创建空模板文档。
 10. 全量 `spec.md` / `design.md` 缺失时必须提示风险。
@@ -1801,18 +1801,18 @@ Agent 行为契约：
 
 实现一个兼容 CLI 至少应通过以下行为：
 
-- [ ] `codespec init` 幂等创建目录和配置。
-- [ ] `codespec init` 不复制内容模板到业务目录。
-- [ ] `codespec start REQ...` 只创建变更目录和 `.codespec-state.json`。
-- [ ] `codespec status` 能识别 pending、blocked、draft、template、confirmed。
-- [ ] `codespec go --json` 返回当前阶段 payload。
-- [ ] `codespec accept --json` 能确认非模板阶段文件并推进。
-- [ ] `codespec confirm <stage>` 校验前序阶段。
-- [ ] `codespec validate` 输出上述校验码。
-- [ ] `codespec done` 在 error findings 存在时失败。
-- [ ] `codespec archive` 将变更移动到 `codespec/changes/archives/{date}-{change}`。
-- [ ] `codespec integration install opencode|claude-code|codex|all` 安装对应命令或技能并写 manifest。
-- [ ] `codespec integration remove opencode|claude-code|codex|all` 保留被用户修改的文件。
+- [ ] `metaspec init` 幂等创建目录和配置。
+- [ ] `metaspec init` 不复制内容模板到业务目录。
+- [ ] `metaspec start REQ...` 只创建变更目录和 `.metaspec-state.json`。
+- [ ] `metaspec status` 能识别 pending、blocked、draft、template、confirmed。
+- [ ] `metaspec go --json` 返回当前阶段 payload。
+- [ ] `metaspec accept --json` 能确认非模板阶段文件并推进。
+- [ ] `metaspec confirm <stage>` 校验前序阶段。
+- [ ] `metaspec validate` 输出上述校验码。
+- [ ] `metaspec done` 在 error findings 存在时失败。
+- [ ] `metaspec archive` 将变更移动到 `metaspec/changes/archives/{date}-{change}`。
+- [ ] `metaspec integration install opencode|claude-code|codex|all` 安装对应命令或技能并写 manifest。
+- [ ] `metaspec integration remove opencode|claude-code|codex|all` 保留被用户修改的文件。
 - [ ] 所有检查类命令支持 `--json`。
 
 ## 13. 测试建议

@@ -1,9 +1,10 @@
 {
-  "name": "codespec-community",
+  "name": "metaspec-community",
   "version": "0.1.0",
   "type": "module",
-  "description": "CodeSpec methodology, templates, and CLI workflow tools.",
+  "description": "MetaSpec methodology, templates, and CLI workflow tools.",
   "bin": {
+    "metaspec": "./bin/metaspec.js",
     "codespec": "./bin/codespec.js"
   },
   "engines": {
@@ -16,7 +17,8 @@
     "bin",
     "src",
     "templates",
-    "docs"
+    "docs",
+    "scripts"
   ],
   "license": "MIT"
 }

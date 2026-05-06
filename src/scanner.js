@@ -5,7 +5,7 @@ const ANY_DEPTH_IGNORED_DIRS = new Set([
   ".git",
   ".hg",
   ".svn",
-  ".codespec-cli",
+  ".metaspec-cli",
   "node_modules",
   ".next",
   ".nuxt",
@@ -32,7 +32,7 @@ const WORKSPACE_ARTIFACT_DIRS = new Set([
 
 const SOURCE_DIR_NAMES = new Set(["src", "source", "lib", "app", "server", "cmd", "pkg"]);
 
-const IGNORED_PATHS = new Set(["codespec/changes/archives"]);
+const IGNORED_PATHS = new Set(["metaspec/changes/archives"]);
 
 const LOCK_FILES = new Set([
   "package-lock.json",

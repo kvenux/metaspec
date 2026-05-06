@@ -218,12 +218,12 @@ function parseOutput({ strategy, task, stdout, outputFile }) {
 
 function buildDesignPrompt(scan, plan, runner) {
   const templates = readFullTemplates();
-  return `你是 CodeSpec 文档生成 runner（${runner}）。
+  return `你是 MetaSpec 文档生成 runner（${runner}）。
 当前任务只允许读取和分析仓库。
 禁止修改任何文件。
 禁止调用 git apply。
-禁止写入 codespec/specs。
-CodeSpec CLI 会负责保存文件。
+禁止写入 metaspec/specs。
+MetaSpec CLI 会负责保存文件。
 请只输出 design.md 的最终 Markdown。
 
 ${commonOutputRules()}
@@ -247,11 +247,11 @@ ${scan.fileTree}
 
 function buildSpecPrompt(design, runner) {
   const templates = readFullTemplates();
-  return `你是 CodeSpec 文档生成 runner（${runner}）。
+  return `你是 MetaSpec 文档生成 runner（${runner}）。
 禁止修改任何文件。
 禁止调用 git apply。
-禁止写入 codespec/specs。
-CodeSpec CLI 会负责保存文件。
+禁止写入 metaspec/specs。
+MetaSpec CLI 会负责保存文件。
 请只输出 spec.md 的最终 Markdown。
 必须只从下面生成后的 design.md 反推 spec.md，不要直接使用源码上下文。
 
@@ -296,9 +296,9 @@ export function createWorkspaceGuard(paths, run = null) {
 
 function workspaceFailure(changedFiles) {
   if (!changedFiles.length) return null;
-  const modifiedSpecs = changedFiles.filter((file) => file === "codespec/specs/spec.md" || file === "codespec/specs/design.md");
+  const modifiedSpecs = changedFiles.filter((file) => file === "metaspec/specs/spec.md" || file === "metaspec/specs/design.md");
   if (modifiedSpecs.length === changedFiles.length) {
-    return failure("EXTERNAL_RUNNER_MODIFIED_SPECS", "外部 runner 修改了 codespec/specs，生成已中止。请检查 git diff。", {
+    return failure("EXTERNAL_RUNNER_MODIFIED_SPECS", "外部 runner 修改了 metaspec/specs，生成已中止。请检查 git diff。", {
       modifiedSpecs
     });
   }
@@ -388,9 +388,9 @@ function failure(code, message, extra = {}) {
 function nextForError(code) {
   switch (code) {
     case "RUNNER_NOT_FOUND":
-      return ["codespec generate --runner auto", "确认对应 CLI 已安装并登录"];
+      return ["metaspec generate --runner auto", "确认对应 CLI 已安装并登录"];
     case "EXTERNAL_RUNNER_FAILED":
-      return ["查看 run 目录 logs/*stdout.log 和 logs/*stderr.log", "codespec generate --runner auto"];
+      return ["查看 run 目录 logs/*stdout.log 和 logs/*stderr.log", "metaspec generate --runner auto"];
     case "EXTERNAL_RUNNER_EMPTY_OUTPUT":
     case "EXTERNAL_RUNNER_UNPARSEABLE_OUTPUT":
       return ["查看 run 目录 logs/*stdout.log 和 logs/*stderr.log", "确认 runner 最终输出 Markdown 标题"];
@@ -398,7 +398,7 @@ function nextForError(code) {
     case "EXTERNAL_RUNNER_MODIFIED_SPECS":
       return ["git diff", "检查外部 runner 修改后再重新生成"];
     default:
-      return ["codespec show"];
+      return ["metaspec show"];
   }
 }
 

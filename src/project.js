@@ -5,7 +5,7 @@ import { CONFIG_YAML, DOC_DIRS, RUNTIME_DIRS } from "./constants.js";
 import { ensureDir, rel, resolveRoot, writeFileIfNeeded } from "./util.js";
 import { installIntegration } from "./integrations.js";
 
-const GITIGNORE_LINES = [".codespec-cli/runs/", ".codespec-cli/cache/", ".codespec-cli/tmp/"];
+const GITIGNORE_LINES = [".metaspec-cli/runs/", ".metaspec-cli/cache/", ".metaspec-cli/tmp/"];
 
 export function initProject(targetPath, options = {}) {
   const root = path.resolve(targetPath || options.path || process.cwd());
@@ -16,7 +16,7 @@ export function initProject(targetPath, options = {}) {
     ensureDir(path.join(root, dir), created, root);
   }
 
-  writeFileIfNeeded(path.join(root, ".codespec-cli/config.yaml"), CONFIG_YAML, {
+  writeFileIfNeeded(path.join(root, ".metaspec-cli/config.yaml"), CONFIG_YAML, {
     force: Boolean(options.force),
     created,
     skipped,
@@ -34,7 +34,7 @@ export function initProject(targetPath, options = {}) {
     integrationResult = installIntegration(root, integration, options);
   }
 
-  const existingDocs = ["codespec/specs/spec.md", "codespec/specs/design.md"].filter((file) =>
+  const existingDocs = ["metaspec/specs/spec.md", "metaspec/specs/design.md"].filter((file) =>
     fs.existsSync(path.join(root, file))
   );
 
@@ -55,7 +55,7 @@ export function initProject(targetPath, options = {}) {
     summary: {
       project: root,
       "default runner": resolveDefaultRunner(options),
-      config: ".codespec-cli/config.yaml"
+      config: ".metaspec-cli/config.yaml"
     },
     sections: [
       ...(created.length ? [{ title: "已创建", items: created }] : []),
@@ -72,10 +72,10 @@ export function initProject(targetPath, options = {}) {
       `默认生成工具：${resolveDefaultRunner(options)}`,
       "已检查本地 Agent 工具：",
       ...agentSummaryItems(externalAgents),
-      ...existingDocs.map((item) => `已存在真实全量文档，如需覆盖请执行 codespec apply --force：${item}`)
+      ...existingDocs.map((item) => `已存在真实全量文档，如需覆盖请执行 metaspec apply --force：${item}`)
     ],
-    message: `已检查 CodeSpec 项目：${root}`,
-    next: ["codespec generate", "codespec show", "codespec apply"]
+    message: `已检查 metaspec 项目：${root}`,
+    next: ["metaspec generate", "metaspec show", "metaspec apply"]
   };
 }
 
@@ -102,11 +102,11 @@ export function projectPaths(options = {}) {
   const root = resolveRoot(options);
   return {
     root,
-    codespec: path.join(root, "codespec"),
-    specs: path.join(root, "codespec/specs"),
-    changes: path.join(root, "codespec/changes"),
-    archives: path.join(root, "codespec/changes/archives"),
-    runtime: path.join(root, ".codespec-cli")
+    metaspec: path.join(root, "metaspec"),
+    specs: path.join(root, "metaspec/specs"),
+    changes: path.join(root, "metaspec/changes"),
+    archives: path.join(root, "metaspec/changes/archives"),
+    runtime: path.join(root, ".metaspec-cli")
   };
 }
 
@@ -185,7 +185,7 @@ function spawnVersion(executablePath, env) {
 }
 
 function mergeGenerationConfig(root, externalAgents, options) {
-  const file = path.join(root, ".codespec-cli/config.yaml");
+  const file = path.join(root, ".metaspec-cli/config.yaml");
   const current = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : CONFIG_YAML;
   fs.writeFileSync(file, mergeGenerationYaml(current, externalAgents, options), "utf8");
 }

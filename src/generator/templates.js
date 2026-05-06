@@ -28,7 +28,7 @@ export function commonOutputRules() {
 2. 不要用 \`\`\`md 或任何代码围栏包裹整篇文档。
 3. 不要提到 sandbox、filesystem、read-only、不能写文件、copy into your repo 等运行环境信息。
 4. 使用中文撰写；技术名词可以保留英文。
-5. 不要声称已经写入文件；CodeSpec CLI 会负责保存产物。`;
+5. 不要声称已经写入文件；MetaSpec CLI 会负责保存产物。`;
 }
 
 export function specBlackBoxRules() {

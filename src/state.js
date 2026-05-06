@@ -26,8 +26,8 @@ export function startChange(input, options = {}) {
     ok: true,
     change,
     path: path.relative(paths.root, dir).replaceAll(path.sep, "/"),
-    message: `已创建 CodeSpec 变更：${change}`,
-    next: ["在 opencode 中执行 /codespec"]
+    message: `已创建 metaspec 变更：${change}`,
+    next: ["在 opencode 中执行 /metaspec"]
   };
 }
 
@@ -49,7 +49,7 @@ export function initialState(change) {
 }
 
 export function stateFile(root, change) {
-  return path.join(root, "codespec/changes", change, ".codespec-state.json");
+  return path.join(root, "metaspec/changes", change, ".metaspec-state.json");
 }
 
 export function listChanges(options = {}) {
@@ -94,7 +94,7 @@ export function stageStatus(root, change, state, stage) {
   if (record.confirmed) return "confirmed";
   const previous = STAGES.slice(0, stage.index - 1);
   if (previous.some((item) => !ensureStageRecord(state, item).confirmed)) return "blocked";
-  const file = path.join(root, "codespec/changes", change, stage.file);
+  const file = path.join(root, "metaspec/changes", change, stage.file);
   if (!fs.existsSync(file)) return record.status === "clarifying" ? "clarifying" : "pending";
   const content = fs.readFileSync(file, "utf8");
   if (isTemplateContent(content, stage.file)) return "template";
@@ -114,12 +114,12 @@ export function isTemplateContent(content, fileName = "") {
 export function getStatus(options = {}, explicit) {
   const paths = projectPaths(options);
   const change = resolveChange(options, explicit);
-  if (!change) return { ok: false, code: "NO_ACTIVE_CHANGE", message: "未发现活动的 CodeSpec 变更。" };
+  if (!change) return { ok: false, code: "NO_ACTIVE_CHANGE", message: "未发现活动的 metaspec 变更。" };
   const state = loadState(paths.root, change);
   const stages = STAGES.map((stage) => ({
     ...stage,
     status: stageStatus(paths.root, change, state, stage),
-    filePath: `codespec/changes/${change}/${stage.file}`
+    filePath: `metaspec/changes/${change}/${stage.file}`
   }));
   return { ok: true, change, currentStage: state.currentStage, stages };
 }
@@ -127,7 +127,7 @@ export function getStatus(options = {}, explicit) {
 export function acceptStage(options = {}, explicitChange, explicitStage) {
   const paths = projectPaths(options);
   const change = resolveChange(options, explicitChange);
-  if (!change) throw new Error("未发现活动的 CodeSpec 变更。");
+  if (!change) throw new Error("未发现活动的 metaspec 变更。");
   const state = loadState(paths.root, change);
   const stage = STAGES.find((item) => item.key === (explicitStage || state.currentStage));
   if (!stage) throw new Error(`未知阶段：${explicitStage}`);
@@ -159,14 +159,14 @@ export function acceptStage(options = {}, explicitChange, explicitStage) {
     completed: !next,
     readyForImplementation: !next,
     message: next ? `已确认 ${stage.key}，进入 ${next.name}。` : `已确认 ${stage.key}，文档链已验证，可进入实现。`,
-    next: next ? ["继续在 opencode 中执行 /codespec"] : ["执行实现任务", "实现完成并验证通过后执行 codespec done"]
+    next: next ? ["继续在 opencode 中执行 /metaspec"] : ["执行实现任务", "实现完成并验证通过后执行 metaspec done"]
   };
 }
 
 export function archiveChange(options = {}, explicitChange) {
   const paths = projectPaths(options);
   const change = resolveChange(options, explicitChange);
-  if (!change) throw new Error("未发现活动的 CodeSpec 变更。");
+  if (!change) throw new Error("未发现活动的 metaspec 变更。");
   const source = path.join(paths.changes, change);
   if (!fs.existsSync(source)) throw new Error(`变更目录不存在：${change}`);
   const state = loadState(paths.root, change);

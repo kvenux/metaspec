@@ -75,7 +75,7 @@ export function runDirectGeneration({ paths, run, scan, plan, strategy }) {
 
 function buildDesignPrompt(scan, plan) {
   const templates = readFullTemplates();
-  return `你是 CodeSpec direct design.md 生成 runner。
+  return `你是 MetaSpec direct design.md 生成 runner。
 当前任务：基于 scan 和 plan 直接生成整体 design.md。
 
 ${commonOutputRules()}
@@ -108,7 +108,7 @@ ${scan.fileTree}
 
 function buildSpecPrompt(design) {
   const templates = readFullTemplates();
-  return `你是 CodeSpec direct spec.md 生成 runner。
+  return `你是 MetaSpec direct spec.md 生成 runner。
 当前任务：只从已生成的 design.md 反推出 SPEC。
 
 ${commonOutputRules()}

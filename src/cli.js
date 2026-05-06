@@ -93,8 +93,8 @@ async function promptDefaultRunner(externalAgents) {
   if (externalAgents.codex.available) choices.push("codex");
   if (externalAgents.claude.available) choices.push("claude");
 
-  console.log(style("CodeSpec init", "title"));
-  console.log("选择默认文档生成工具。之后执行 codespec generate 时会默认使用该选择。");
+  console.log(style("metaspec init", "title"));
+  console.log("选择默认文档生成工具。之后执行 metaspec generate 时会默认使用该选择。");
   console.log("");
   console.log("  auto   推荐：codex -> claude -> deterministic stub");
   if (choices.includes("codex")) console.log("  codex  使用本机已登录 Codex CLI");
@@ -118,7 +118,7 @@ function validateDefaultRunner(defaultRunner, externalAgents = null) {
       code: "RUNNER_NOT_FOUND",
       runner: defaultRunner,
       message: `未找到 ${defaultRunner}，不能设为默认生成工具。`,
-      next: ["codespec init --default-runner auto", `安装并登录 ${defaultRunner} 后重试`]
+      next: ["metaspec init --default-runner auto", `安装并登录 ${defaultRunner} 后重试`]
     };
   }
   if (["auto", "codex", "claude"].includes(defaultRunner)) return null;
@@ -128,7 +128,7 @@ function validateDefaultRunner(defaultRunner, externalAgents = null) {
       code: "RUNNER_NOT_IMPLEMENTED",
       runner: defaultRunner,
       message: "当前 generate runner 暂未实现 opencode，请选择 auto、codex 或 claude。",
-      next: ["codespec init --default-runner auto"]
+      next: ["metaspec init --default-runner auto"]
     };
   }
   return {
@@ -136,7 +136,7 @@ function validateDefaultRunner(defaultRunner, externalAgents = null) {
     code: "RUNNER_NOT_IMPLEMENTED",
     runner: defaultRunner,
     message: `不支持的默认生成工具：${defaultRunner}。请使用 auto、codex 或 claude。`,
-    next: ["codespec init --default-runner auto"]
+    next: ["metaspec init --default-runner auto"]
   };
 }
 
@@ -177,8 +177,8 @@ function goCommand(options, explicit) {
     return {
       ok: false,
       code: "NO_ACTIVE_CHANGE",
-      message: "未发现活动的 CodeSpec 变更。",
-      next: ["codespec start REQ202604270001-feature-name"]
+      message: "未发现活动的 metaspec 变更。",
+      next: ["metaspec start REQ202604270001-feature-name"]
     };
   }
   const status = getStatus(options, change);
@@ -189,7 +189,7 @@ function goCommand(options, explicit) {
       change,
       nextAction: "implementation",
       message: "文档链已验证，可进入实现。实现完成并验证通过后再归档。",
-      next: ["按 tasks.md 执行实现", "运行必要测试和验证", "完成后执行 codespec done"]
+      next: ["按 tasks.md 执行实现", "运行必要测试和验证", "完成后执行 metaspec done"]
     };
   }
   const nextAction = current.status === "draft" ? "await_user_accept" : current.status === "blocked" ? "complete_previous_stage" : "open_agent_stage";
@@ -210,18 +210,18 @@ function goCommand(options, explicit) {
       requiresFullDesign: Boolean(current.requiresFullDesign),
       requiresUserGenerationApproval: true,
       agentCommand: current.agentCommand,
-      entryCommand: "/codespec",
+      entryCommand: "/metaspec",
       objective: current.objective
     },
     nextAction,
-    next: nextAction === "await_user_accept" ? ["确认后执行 codespec accept"] : ["在 opencode 中执行 /codespec"]
+    next: nextAction === "await_user_accept" ? ["确认后执行 metaspec accept"] : ["在 opencode 中执行 /metaspec"]
   };
 }
 
 function stageInputs(stage, change, root) {
   return (stage.inputs || []).map((input) => {
-    const filePath = input.endsWith(".md") && !input.startsWith("codespec/")
-      ? `codespec/changes/${change}/${input}`
+    const filePath = input.endsWith(".md") && !input.startsWith("metaspec/")
+      ? `metaspec/changes/${change}/${input}`
       : input;
     return {
       path: filePath,
@@ -232,9 +232,9 @@ function stageInputs(stage, change, root) {
 }
 
 function isRequiredStageInput(stage, filePath) {
-  if (filePath === "codespec/specs/spec.md") return Boolean(stage.requiresFullSpec);
-  if (filePath === "codespec/specs/design.md") return Boolean(stage.requiresFullDesign);
-  if (filePath === "codespec/service-context.md") return false;
+  if (filePath === "metaspec/specs/spec.md") return Boolean(stage.requiresFullSpec);
+  if (filePath === "metaspec/specs/design.md") return Boolean(stage.requiresFullDesign);
+  if (filePath === "metaspec/service-context.md") return false;
   return true;
 }
 
@@ -279,8 +279,8 @@ function generateCommand(options, args) {
   const action = args[0];
   const generateOptions = attachGenerateProgress(options);
   if (!options.json) {
-    if (!action) printProgressTitle("CodeSpec generate");
-    if (action === "module") printProgressTitle("CodeSpec generate module");
+    if (!action) printProgressTitle("metaspec generate");
+    if (action === "module") printProgressTitle("metaspec generate module");
   }
   if (!action) return generateDocs(generateOptions);
   if (action === "module") return generateModule(args[1], generateOptions);
@@ -288,35 +288,35 @@ function generateCommand(options, args) {
 }
 
 function help() {
-  return `╭─ CodeSpec CLI ─────────────────────────────────────────╮
+  return `╭─ MetaSpec CLI ─────────────────────────────────────────╮
 │ Repo-aware specs from local coding agents               │
 ╰─────────────────────────────────────────────────────────╯
 
 常用流程：
-  codespec init [path]
-  codespec generate
-  codespec show
-  codespec apply
+  metaspec init [path]
+  metaspec generate
+  metaspec show
+  metaspec apply
 
 生成文档：
-  codespec generate [--runner auto|codex|claude|opencode] [--mode auto|direct|react] [--model model]
-  codespec generate module <path>
+  metaspec generate [--runner auto|codex|claude|opencode] [--mode auto|direct|react] [--model model]
+  metaspec generate module <path>
 
 项目变更：
-  codespec start <change>
-  codespec list
-  codespec status [change]
-  codespec go [change] --json
-  codespec accept [change]
-  codespec confirm <stage> [change]
-  codespec validate [change]
-  codespec doctor
-  codespec done [change]                         实现完成并验证通过后归档
-  codespec archive [change] [--force]
+  metaspec start <change>
+  metaspec list
+  metaspec status [change]
+  metaspec go [change] --json
+  metaspec accept [change]
+  metaspec confirm <stage> [change]
+  metaspec validate [change]
+  metaspec doctor
+  metaspec done [change]                         实现完成并验证通过后归档
+  metaspec archive [change] [--force]
 
 集成：
-  codespec integration list
-  codespec integration install|remove opencode|claude-code|codex|all
+  metaspec integration list
+  metaspec integration install|remove opencode|claude-code|codex|all
 
 选项：
   --runner auto|codex|claude|opencode   生成工具，默认 auto

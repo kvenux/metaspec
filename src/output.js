@@ -23,8 +23,8 @@ export function printResult(result, options = {}) {
 
 export function printProgressTitle(title) {
   if (isInteractive()) {
-    const label = title.replace(/^CodeSpec\s*/i, "") || "CLI";
-    const headline = ` CodeSpec ${label} `;
+    const label = title.replace(/^metaspec\s*/i, "") || "CLI";
+    const headline = ` metaspec ${label} `;
     const width = Math.max(46, visibleLength(headline) + 8);
     const line = "─".repeat(width - 2);
     process.stderr.write(`${style(`╭${line}╮`, "brand")}\n`);
