@@ -83,7 +83,7 @@ export function runRunnerTask({ paths, run, executable, strategy, task, prompt }
     return failure("RUNNER_NOT_FOUND", `External runner not found: ${strategy.runner}`, { runner: strategy.runner });
   }
 
-  const attempts = [strategy.model, strategy.fallbackModel].filter(Boolean);
+  const attempts = [strategy.model || null, strategy.fallbackModel].filter((model, index) => index === 0 || Boolean(model));
   const taskSlug = slugify(task) || "task";
   const attemptLogs = [];
   let lastFailure = null;
@@ -151,6 +151,16 @@ function buildArgs({ paths, strategy, outputFile }) {
   if (strategy.runner === "codex") {
     return ["exec", "-C", paths.root, "--model", strategy.model, "--sandbox", "read-only", "--output-last-message", outputFile, "-"];
   }
+  if (strategy.runner === "opencode") {
+    return [
+      "run",
+      "--format",
+      "json",
+      "--dir",
+      paths.root,
+      ...(strategy.model ? ["--model", strategy.model] : [])
+    ];
+  }
   return [
     "--model",
     strategy.model,
@@ -173,7 +183,7 @@ function spawnRunner(executable, args, cwd, prompt) {
     input: prompt,
     shell: process.platform === "win32" && /\.(cmd|bat)$/i.test(executable),
     windowsHide: true,
-    timeout: 120000
+    timeout: 300000
   });
 }
 
@@ -342,9 +352,10 @@ function parseJsonl(text) {
     if (!line.trim()) continue;
     try {
       const event = JSON.parse(line);
-      const candidate = event.content || event.markdown || event.final || event.result || event.message?.content;
+      const candidate = event.content || event.markdown || event.final || event.result || event.message?.content || event.part?.text;
       const role = event.role || event.type || event.event || event.message?.role;
-      if (typeof candidate === "string" && candidate.trim() && /assistant|final|message|result/i.test(String(role || "final"))) {
+      const phase = event.part?.metadata?.openai?.phase || "";
+      if (typeof candidate === "string" && candidate.trim() && /assistant|final|message|result|text/i.test(String(role || "final")) && (!phase || /final/i.test(String(phase)))) {
         content = candidate.trim();
       }
     } catch {

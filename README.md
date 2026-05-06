@@ -155,7 +155,7 @@ metaspec generate --runner opencode
 `auto` prefers locally authenticated tools:
 
 ```text
-codex -> claude -> deterministic stub
+codex -> claude -> opencode -> deterministic stub
 ```
 
 Generation modes:
