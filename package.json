@@ -4,8 +4,7 @@
   "type": "module",
   "description": "MetaSpec methodology, templates, and CLI workflow tools.",
   "bin": {
-    "metaspec": "./bin/metaspec.js",
-    "codespec": "./bin/codespec.js"
+    "metaspec": "./bin/metaspec.js"
   },
   "engines": {
     "node": ">=20.0.0"
