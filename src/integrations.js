@@ -19,12 +19,12 @@ const INTEGRATIONS = {
 
 function opencodeFiles() {
   return {
-  "metaspec.md": opencodeCommand("metaspec", "MetaSpec 主流程", mainFlowBody()),
-  "metaspec.proposal.md": opencodeCommand("metaspec.proposal", "MetaSpec 需求澄清", stageCommandBody(stageDefinitions.proposal)),
-  "metaspec.delta-spec.md": opencodeCommand("metaspec.delta-spec", "MetaSpec Spec 增量设计", stageCommandBody(stageDefinitions["delta-spec"])),
-  "metaspec.delta-design.md": opencodeCommand("metaspec.delta-design", "MetaSpec Design 增量设计", stageCommandBody(stageDefinitions["delta-design"])),
-  "metaspec.tasks.md": opencodeCommand("metaspec.tasks", "MetaSpec 任务拆解", stageCommandBody(stageDefinitions.tasks)),
-  "metaspec.validation.md": opencodeCommand("metaspec.validation", "MetaSpec 一致性验证", stageCommandBody(stageDefinitions.validation))
+  "metaspec.md": opencodeCommand("metaspec", "MetaSpec Main Flow", mainFlowBody()),
+  "metaspec.proposal.md": opencodeCommand("metaspec.proposal", "MetaSpec Requirement Clarification", stageCommandBody(stageDefinitions.proposal)),
+  "metaspec.delta-spec.md": opencodeCommand("metaspec.delta-spec", "MetaSpec Spec Delta", stageCommandBody(stageDefinitions["delta-spec"])),
+  "metaspec.delta-design.md": opencodeCommand("metaspec.delta-design", "MetaSpec Design Delta", stageCommandBody(stageDefinitions["delta-design"])),
+  "metaspec.tasks.md": opencodeCommand("metaspec.tasks", "MetaSpec Task Breakdown", stageCommandBody(stageDefinitions.tasks)),
+  "metaspec.validation.md": opencodeCommand("metaspec.validation", "MetaSpec Consistency Validation", stageCommandBody(stageDefinitions.validation))
   };
 }
 
@@ -74,81 +74,81 @@ const stageDefinitions = {
     key: "proposal",
     index: 1,
     total: 5,
-    name: "需求澄清",
+    name: "Requirement clarification",
     file: "proposal.md",
     command: "/metaspec.proposal",
-    objective: "明确 Why、What、Impact、非目标、验收标准和 DFX 约束。",
-    inputs: ["全量 spec.md（如存在）", "全量 design.md（如存在）", "service-context.md（如存在）", "当前 change 已有文档"],
-    nextName: "Spec 增量设计",
-    artifactRule: "只描述 Why、What Changes、Impact、DFX 约束和非目标，不写实现细节。",
-    contextRule: "全量 spec.md/design.md 缺失时可以继续需求澄清，但必须在 proposal.md 标注全量上下文缺失风险。",
-    clarificationFocus: "需求背景、范围、非目标、优先级、验收标准、影响面和 DFX 约束",
-    generationFocus: "proposal 拟生成要点",
-    completionFocus: "范围、非目标、验收标准和破坏性变更"
+    objective: "Clarify why, what changes, impact, non-goals, acceptance criteria, and DFX constraints.",
+    inputs: ["full spec.md if present", "full design.md if present", "service-context.md if present", "existing documents in the current change"],
+    nextName: "Spec delta",
+    artifactRule: "Describe only why, what changes, impact, DFX constraints, and non-goals. Do not include implementation details.",
+    contextRule: "If full spec.md/design.md is missing, clarification may continue, but proposal.md must record the missing-baseline risk.",
+    clarificationFocus: "business context, scope, non-goals, priority, acceptance criteria, impact, and DFX constraints",
+    generationFocus: "the proposal points to generate",
+    completionFocus: "scope, non-goals, acceptance criteria, and breaking changes"
   },
   "delta-spec": {
     key: "delta-spec",
     index: 2,
     total: 5,
-    name: "Spec 增量设计",
+    name: "Spec delta",
     file: "delta-spec.md",
     command: "/metaspec.delta-spec",
-    objective: "将 proposal 转换为可验证的业务规则增量。",
-    inputs: ["全量 metaspec/specs/spec.md", "proposal.md", "已有 delta-spec.md（如存在）"],
-    nextName: "Design 增量设计",
-    artifactRule: "只写业务规则，使用 ADDED / MODIFIED / REMOVED，每条规则必须有可判定验收条件。",
-    contextRule: "如果全量 spec.md 不存在，不要伪造；提示用户先执行 metaspec generate && metaspec apply，或导入真实 spec.md。",
-    clarificationFocus: "业务规则、验收条件、状态流转、权限、数据约束、异常路径和 DFX 约束",
-    generationFocus: "delta-spec 拟生成的业务规则要点",
-    completionFocus: "ADDED/MODIFIED/REMOVED、验收条件和与全量 spec.md 的冲突"
+    objective: "Convert proposal.md into verifiable business-rule deltas.",
+    inputs: ["full metaspec/specs/spec.md", "proposal.md", "existing delta-spec.md if present"],
+    nextName: "Design delta",
+    artifactRule: "Write only business rules. Use the exact top-level headings `## ADDED Requirements`, `## MODIFIED Requirements`, and `## REMOVED Requirements` even when a section says `None`. Every rule must have decidable acceptance criteria.",
+    contextRule: "If the full spec.md is missing, do not invent it. Ask the user to run metaspec generate && metaspec apply, or import a real spec.md.",
+    clarificationFocus: "business rules, acceptance criteria, state transitions, permissions, data constraints, exception paths, and DFX constraints",
+    generationFocus: "the business-rule deltas to generate",
+    completionFocus: "ADDED/MODIFIED/REMOVED coverage, acceptance criteria, and conflicts with the full spec.md"
   },
   "delta-design": {
     key: "delta-design",
     index: 3,
     total: 5,
-    name: "Design 增量设计",
+    name: "Design delta",
     file: "delta-design.md",
     command: "/metaspec.delta-design",
-    objective: "为 delta-spec 的业务规则设计实现方案。",
-    inputs: ["全量 metaspec/specs/design.md", "proposal.md", "delta-spec.md", "已有 delta-design.md（如存在）"],
-    nextName: "任务拆解",
-    artifactRule: "设计必须承接 delta-spec，覆盖关键决策、备选方案、风险、兼容性、数据模型、接口和发布影响。",
-    contextRule: "如果全量 design.md 不存在，不要伪造；提示用户先执行 metaspec generate && metaspec apply，或导入真实 design.md。",
-    clarificationFocus: "架构影响、接口契约、数据模型、兼容性、迁移、发布策略、风险和验证策略",
-    generationFocus: "delta-design 拟生成的设计要点",
-    completionFocus: "规格覆盖、方案取舍、风险缓解和后续 tasks 可拆解性"
+    objective: "Design an implementation approach for the business rules in delta-spec.md.",
+    inputs: ["full metaspec/specs/design.md", "proposal.md", "delta-spec.md", "existing delta-design.md if present"],
+    nextName: "Task breakdown",
+    artifactRule: "The design must carry delta-spec forward and cover decisions, alternatives, risks, compatibility, data model, interfaces, and release impact.",
+    contextRule: "If the full design.md is missing, do not invent it. Ask the user to run metaspec generate && metaspec apply, or import a real design.md.",
+    clarificationFocus: "architecture impact, API contracts, data model, compatibility, migration, rollout, risk, and verification strategy",
+    generationFocus: "the design decisions to generate",
+    completionFocus: "spec coverage, tradeoffs, risk mitigation, and whether tasks can be split cleanly"
   },
   tasks: {
     key: "tasks",
     index: 4,
     total: 5,
-    name: "任务拆解",
+    name: "Task breakdown",
     file: "tasks.md",
     command: "/metaspec.tasks",
-    objective: "将设计拆成可执行、可验证的开发任务。",
-    inputs: ["全量 spec.md", "全量 design.md", "delta-spec.md", "delta-design.md", "已有 tasks.md（如存在）"],
-    nextName: "一致性验证",
-    artifactRule: "任务必须能被开发者或 coding agent 执行，按模块、文件或责任边界拆分，并包含测试和文档任务。",
-    contextRule: "如果全量 spec.md 或 design.md 不存在，应阻断任务拆解或明确标记为高风险，不要伪造上下文。",
-    clarificationFocus: "任务边界、文件范围、依赖顺序、并行性、测试策略和验收方式",
-    generationFocus: "tasks 拟拆解的任务范围",
-    completionFocus: "任务粒度、依赖关系、测试覆盖和文档更新"
+    objective: "Break the design into executable and verifiable development tasks.",
+    inputs: ["full spec.md", "full design.md", "delta-spec.md", "delta-design.md", "existing tasks.md if present"],
+    nextName: "Consistency validation",
+    artifactRule: "Tasks must be executable by a developer or coding agent, split by module/file/responsibility boundary, and include tests and documentation work.",
+    contextRule: "If full spec.md or design.md is missing, block task breakdown or mark it as high risk. Do not invent context.",
+    clarificationFocus: "task boundaries, file scope, dependency order, parallelism, test strategy, and acceptance method",
+    generationFocus: "the task scope to break down",
+    completionFocus: "task size, dependencies, test coverage, and documentation updates"
   },
   validation: {
     key: "validation",
     index: 5,
     total: 5,
-    name: "一致性验证",
+    name: "Consistency validation",
     file: "validation.md",
     command: "/metaspec.validation",
-    objective: "检查 proposal、delta-spec、delta-design、tasks 与全量文档的覆盖和冲突。",
-    inputs: ["全量 spec.md", "全量 design.md", "proposal.md", "delta-spec.md", "delta-design.md", "tasks.md"],
-    nextName: "实现",
-    artifactRule: "检查文档链覆盖关系、冲突、遗漏场景、DFX 约束和测试任务，结尾必须给出是否允许进入实现的结论。",
-    contextRule: "如果全量 spec.md 或 design.md 不存在，应阻断一致性验证或明确标记为高风险，不要伪造上下文。",
-    clarificationFocus: "覆盖关系、冲突判断标准、遗漏场景、验证口径和是否允许进入实现",
-    generationFocus: "validation 拟检查项和预期结论口径",
-    completionFocus: "覆盖结论、冲突项、阻断问题和是否允许进入实现"
+    objective: "Check coverage and conflicts across proposal, delta-spec, delta-design, tasks, and the full baseline docs.",
+    inputs: ["full spec.md", "full design.md", "proposal.md", "delta-spec.md", "delta-design.md", "tasks.md"],
+    nextName: "Implementation",
+    artifactRule: "Check document-chain coverage, conflicts, missing scenarios, DFX constraints, and test tasks. End with a conclusion on whether implementation may start.",
+    contextRule: "If full spec.md or design.md is missing, block validation or mark it as high risk. Do not invent context.",
+    clarificationFocus: "coverage, conflict criteria, missing scenarios, verification standard, and whether implementation may start",
+    generationFocus: "the validation checks and expected conclusion standard",
+    completionFocus: "coverage conclusion, conflicts, blockers, and whether implementation may start"
   }
 };
 
@@ -162,23 +162,23 @@ ${body}
 }
 
 function mainFlowBody() {
-  return `你正在一个使用 MetaSpec 的仓库中工作。/metaspec 是用户主入口；用户进入本命令后，不应被要求在终端和 Agent 之间反复切换。
+  return `You are working in a repository that uses MetaSpec. /metaspec is the user's main entry point; do not make the user bounce between terminal and agent.
 
-工作方式：
-1. 先调用 \`metaspec go --json\`，读取当前 change、阶段、产物路径、nextAction、stage.inputs 和 stage.allowedWritePath。
-2. 如果 nextAction 是 \`implementation\`，展示实现阶段卡片，读取 \`tasks.md\`、\`delta-design.md\` 和 \`validation.md\`，然后执行实现与测试；不要生成新的阶段文档，也不要调用 \`metaspec done\`。
-3. 根据 JSON 渲染阶段状态。首次进入、阶段切换、用户询问状态或 CLI 报错时展示 MetaSpec SDD 阶段面板；普通对话只展示轻量状态栏。
-4. 按当前阶段执行对应工作：需求澄清、Spec 增量设计、Design 增量设计、任务拆解或一致性验证。
-5. 每进入一个新阶段，生成阶段产物前必须至少有一轮面向用户的阶段确认或澄清；信息不足时先问问题，信息足够时也要先给出拟生成要点并请求用户回复“可以生成”。
-6. 写入阶段产物后，必须请求用户确认。用户未确认时继续修改当前阶段。
-7. 用户明确回复“确认”“下一步”或等价表达后，立即调用 \`metaspec accept --json\`，不要要求用户回终端执行确认命令。
-8. 如果 \`metaspec accept --json\` 返回 nextStage，不要停在“已确认/下一步是...”的提示上；必须立即进入 nextStage，展示阶段切换卡片，读取上下文，然后提出澄清问题或请求生成前确认。
-9. 如果所有文档阶段已确认，不要急着调用 \`metaspec done --json\`；先进入实现阶段，按 \`tasks.md\` 执行代码变更和测试验证。只有用户明确表示实现已完成且验证通过，才询问是否归档并调用 \`metaspec done --json\`。
+Workflow:
+1. First call \`metaspec go --json\` and read change, stage, artifact path, nextAction, stage.inputs, and stage.allowedWritePath.
+2. If nextAction is \`implementation\`, show the implementation card, read \`tasks.md\`, \`delta-design.md\`, and \`validation.md\`, then implement and test. Do not generate new stage documents and do not call \`metaspec done\`.
+3. Render stage status from the JSON. Show the full MetaSpec SDD panel on first entry, stage switches, user status questions, or CLI errors; use a compact status bar during normal conversation.
+4. Work according to the current stage: requirement clarification, spec delta, design delta, task breakdown, or consistency validation.
+5. Before writing an artifact for a newly entered stage, complete at least one user-facing clarification or generation-approval turn. If information is insufficient, ask questions. If information is sufficient, list the proposed output points and ask the user to reply "generate".
+6. After writing a stage artifact, ask the user to confirm it. Keep editing the current stage until the user confirms.
+7. When the user explicitly replies "confirm", "next", or equivalent, immediately call \`metaspec accept --json\`; do not ask the user to run the command in a terminal.
+8. If \`metaspec accept --json\` returns nextStage, immediately enter that stage: show a stage-switch card, read context, then ask clarification questions or request generation approval.
+9. If all document stages are confirmed, do not rush to \`metaspec done --json\`. First implement according to \`tasks.md\` and run verification. Only after implementation and verification pass should you ask whether to archive and call \`metaspec done --json\`.
 
-推进规则：
-- 当前阶段的“确认/下一步”只代表确认当前产物并进入下一阶段；确认 validation 只代表文档链允许进入实现，不代表实现已完成或可以归档。
-- 每个阶段首次写入产物前，必须能在当前阶段对话中找到用户对该阶段的明确生成授权，例如“可以生成”“确认生成”“按这个生成”。
-- 只有等待用户回答澄清问题、等待用户确认阶段产物、等待用户授权归档，或实现遇到必须由用户决策的阻塞问题时，才允许停下来。
+Progression rules:
+- "confirm/next" for a stage only confirms the current artifact and advances the document workflow. Confirming validation means the document chain may enter implementation; it does not mean implementation is complete or ready to archive.
+- Before first writing a stage artifact, there must be explicit user authorization in the current stage conversation, such as "generate", "confirm generation", or "generate this".
+- Stop only when waiting for clarification, waiting for artifact confirmation, waiting for archive authorization, or blocked by a decision only the user can make.
 
 ${sharedClarificationGate()}
 
@@ -186,60 +186,60 @@ ${sharedDisplayRules()}
 
 ${sharedPathRules()}
 
-全量文档缺失处理：
-- proposal：可以继续澄清，但必须标注全量上下文缺失风险。
-- delta-spec：缺少全量 spec.md 时，提示先执行 \`metaspec generate && metaspec apply\`，或导入真实 spec.md。
-- delta-design：缺少全量 design.md 时，提示先执行 \`metaspec generate && metaspec apply\`，或导入真实 design.md。
-- tasks / validation：缺少全量 spec.md 或 design.md 时，应阻断或明确标记为高风险，不要伪造上下文。
+Missing full-document handling:
+- proposal: clarification may continue, but proposal.md must record missing-baseline risk.
+- delta-spec: if full spec.md is missing, ask the user to run \`metaspec generate && metaspec apply\` or import a real spec.md.
+- delta-design: if full design.md is missing, ask the user to run \`metaspec generate && metaspec apply\` or import a real design.md.
+- tasks / validation: if full spec.md or design.md is missing, block or clearly mark high risk. Do not invent context.
 
-约束：
-1. 不修改实现代码。
-2. 不直接修改 \`.metaspec-state.json\`。
-3. 只有 CLI 可以推进阶段状态。
-4. 保留用户已写内容，除非用户明确要求重写。
-5. 阶段产物不应保留模板占位符。
-6. 禁止向 \`metaspec/\` 写入空模板文档。
-7. 禁止创建新的 \`metaspec/changes/*\` 目录；变更目录只能由 \`metaspec start\` 创建。
+Constraints:
+1. Do not modify implementation code during document stages.
+2. Do not edit \`.metaspec-state.json\` directly.
+3. Only the CLI may advance stage state.
+4. Preserve user-written content unless the user explicitly asks for a rewrite.
+5. Stage artifacts must not keep template placeholders.
+6. Do not write empty template documents under \`metaspec/\`.
+7. Do not create new \`metaspec/changes/*\` directories; change directories must be created only by \`metaspec start\`.
 `;
 }
 
 function stageCommandBody(stage) {
-  return `当前阶段：${stage.index}/${stage.total} ${stage.key} / ${stage.name}
+  return `Current stage: ${stage.index}/${stage.total} ${stage.key} / ${stage.name}
 
-强制流程：
-1. 先调用 \`metaspec go --json\`，读取当前活动变更、stage.key、stage.file、stage.allowedWritePath 和 stage.inputs。
-2. 如果当前阶段不是 \`${stage.key}\`，停止并提示用户回到 \`/metaspec\` 主流程。
-3. 只能写入 \`metaspec go --json\` 返回的 stage.allowedWritePath，禁止自行推导或创建 \`metaspec/changes/{change}\`。
-4. 先展示本阶段面板。
-5. 写入前必须至少完成一轮本阶段用户交互；即使上下文看似充足，也要先列出${stage.generationFocus}，并请求用户回复“可以生成”。
-6. 用户在上一阶段回复的“确认/下一步”只代表进入本阶段，不代表授权生成 \`${stage.file}\`。
-7. 在用户明确回复“可以生成”“确认生成”“按这个生成”或等价表达前，禁止直接生成文档。
-8. 写入 \`${stage.file}\` 后，必须说明相对路径，并给出清晰确认指引。
-9. 用户确认后，调用 \`metaspec accept --json\`，不要要求用户回终端执行确认命令。
-10. 如果确认 \`validation.md\` 后返回 completed/readyForImplementation，不要调用 \`metaspec done\`；提示文档链可进入实现，并回到 \`/metaspec\` 主流程执行实现。
+Required flow:
+1. First call \`metaspec go --json\` and read the active change, stage.key, stage.file, stage.allowedWritePath, and stage.inputs.
+2. If the current stage is not \`${stage.key}\`, stop and tell the user to return to the \`/metaspec\` main flow.
+3. Write only to stage.allowedWritePath returned by \`metaspec go --json\`; do not infer or create \`metaspec/changes/{change}\`.
+4. Show the stage panel first.
+5. Before writing, complete at least one user interaction for this stage. Even if context looks sufficient, list ${stage.generationFocus} and ask the user to reply "generate".
+6. A previous-stage "confirm/next" only enters this stage; it does not authorize generating \`${stage.file}\`.
+7. Do not generate the document before the user explicitly replies "generate", "confirm generation", "generate this", or equivalent.
+8. After writing \`${stage.file}\`, state the relative path and give a clear confirmation instruction.
+9. After user confirmation, call \`metaspec accept --json\`; do not ask the user to run the command in a terminal.
+10. If confirming \`validation.md\` returns completed/readyForImplementation, do not call \`metaspec done\`; say the document chain may enter implementation and return to the \`/metaspec\` main flow for implementation.
 
-阶段目标：
+Stage objective:
 ${stage.objective}
 
-阶段输入：
+Stage inputs:
 ${stage.inputs.map((input) => `- ${input}`).join("\n")}
 
-产物：
+Artifact:
 - ${stage.file}
 
-执行规则：
+Execution rules:
 1. ${stage.artifactRule}
 2. ${stage.contextRule}
-3. 澄清问题必须影响${stage.clarificationFocus}；如果没有这类高价值问题，改用生成前确认。
-4. 每轮最多问 3 个澄清问题，问题必须说明为什么会影响当前阶段产物。
-5. 用户回复后要明确说明将如何影响 \`${stage.file}\`。
-6. 不修改实现代码。
-7. 不直接修改 \`.metaspec-state.json\`。
-8. 禁止写入空模板文档。
+3. Clarification questions must affect ${stage.clarificationFocus}. If there are no high-value questions, use generation approval instead.
+4. Ask at most 3 clarification questions per turn, and explain why each affects the current artifact.
+5. After the user replies, explain how the answer changes \`${stage.file}\`.
+6. Do not modify implementation code.
+7. Do not edit \`.metaspec-state.json\` directly.
+8. Do not write empty template documents.
 
 ${sharedClarificationGate(stage)}
 
-完成后重点请用户检查：
+After completion, ask the user to review:
 - ${stage.completionFocus}
 
 ${sharedDisplayRules()}
@@ -251,130 +251,130 @@ ${sharedPathRules()}
 function sharedClarificationGate(stage = null) {
   const stageSpecific =
     stage?.key === "validation"
-      ? `\nvalidation 特别规则：\n1. 必须检查 proposal、delta-spec、delta-design、tasks 中是否存在未确认决策、agent 推导决策或待确认问题。\n2. 只要存在影响范围、业务规则、数据模型、迁移、兼容性、测试可执行性的未确认决策，最终结论必须是“需修订后再实现”，不能写“允许进入实现”。\n3. 必须检查当前工作树是否存在 unrelated dirty files；如存在，记录为实现前风险，并说明是否阻断。`
+      ? `\nValidation-specific rules:\n1. Check proposal, delta-spec, delta-design, and tasks for unconfirmed decisions, agent-inferred decisions, or pending questions.\n2. If any unconfirmed decision affects scope, business rules, data model, migration, compatibility, or test executability, the conclusion must be "needs revision before implementation", not "implementation may start".\n3. Check whether the current worktree has unrelated dirty files. If it does, record it as a pre-implementation risk and state whether it blocks implementation.`
       : "";
 
-  return `澄清加强规则：
-1. 需求或阶段输入中出现以下模糊词时，必须至少提出 1 个澄清问题，不能直接进入“生成前确认”：增强、优化、完善、更清楚、更合理、最好、支持一下、避免乱、乱约、方便、简单、灵活、智能、自动、可配置、兼容、重构、性能更好。
-2. 涉及以下高影响决策时，必须显式澄清或取得用户确认，不能只靠 agent 推断：业务规则边界、异常/失败行为、数据模型或 schema、历史数据/迁移、权限与角色、外部接口、兼容性、并发一致性、测试环境、验收口径、非目标。
-3. 生成前确认必须列出“已确认决策”和“agent 推导/建议决策”。如果存在 agent 推导且会影响实现边界，必须请求用户确认该推导，不能写入阶段产物。
-4. 阶段产物必须包含或保留用户澄清记录/决策台账；每条关键决策标明来源：用户确认、现有 spec/design、代码事实、agent 推导。
-5. 待确认问题不得写成“无”，除非已经检查过模糊词、高影响决策、全量文档和当前 change 文档，且没有未确认实现边界。
-6. 如果用户只回复“确认/下一步”，这只确认已展示的阶段产物；不能倒推为确认新出现的 agent 假设。
-7. 如果问题超过 3 个，先问最会改变范围或数据模型的 1-3 个；回答后继续下一轮澄清，而不是用一次生成前确认吞掉剩余问题。${stageSpecific}`;
+  return `Clarification guardrails:
+1. If the requirement or stage inputs contain vague language such as improve, optimize, clean up, better, support, convenient, simple, flexible, smart, automatic, configurable, compatible, refactor, or faster, ask at least one clarification question before generation approval.
+2. Explicitly clarify or obtain user confirmation for high-impact decisions: business-rule boundaries, failure behavior, data model/schema, migration, roles and permissions, external APIs, compatibility, concurrency/consistency, test environment, acceptance criteria, and non-goals.
+3. Generation approval must list "confirmed decisions" and "agent-inferred/proposed decisions". If an agent inference affects implementation boundaries, ask the user to confirm it before writing the artifact.
+4. Stage artifacts must include or preserve a decision ledger. Mark each key decision source: user-confirmed, existing spec/design, code fact, or agent inference.
+5. Do not write pending questions as "none" unless you checked vague language, high-impact decisions, full baseline docs, and current change docs.
+6. If the user only says "confirm/next", that confirms the displayed artifact only; it does not confirm new agent assumptions.
+7. If there are more than 3 questions, ask the 1-3 questions most likely to change scope or data model first, then continue clarification in another turn.${stageSpecific}`;
 }
 
 function sharedDisplayRules() {
-  return `状态展示格式：
+  return `Display formats:
 
-完整阶段面板：
+Full stage panel:
 \`\`\`text
 MetaSpec SDD · {change}
-模式：澄清优先 · 用户确认 · CLI 推进
+Mode: clarification first · user confirmed · CLI driven
 
-流程全景：
-[1 需求澄清 {mark1}] -> [2 Spec 增量 {mark2}] -> [3 Design 增量 {mark3}] -> [4 任务拆解 {mark4}] -> [5 一致性验证 {mark5}]
+Flow:
+[1 Clarification {mark1}] -> [2 Spec delta {mark2}] -> [3 Design delta {mark3}] -> [4 Tasks {mark4}] -> [5 Validation {mark5}]
 
-当前阶段：{index}/{total} {key} / {name}
-状态：{status}
-目标：{objective}
-产物：metaspec/changes/{change}/{file}
-完成：阶段产物非模板，用户明确确认
+Current stage: {index}/{total} {key} / {name}
+Status: {status}
+Objective: {objective}
+Artifact: metaspec/changes/{change}/{file}
+Done when: artifact is not a template and the user explicitly confirms it
 \`\`\`
 
-普通交互状态栏：
+Compact status bar:
 \`\`\`text
 metaspec [{index}/{total} {key} · {name} · {status}]
 \`\`\`
 
-阶段切换卡片：
+Stage switch card:
 \`\`\`text
-已确认 {previous_file}，状态已推进。
+Accepted {previous_file}; state advanced.
 
 MetaSpec SDD · {change}
-[✓ 需求澄清] -> [● Spec 增量] -> [○ Design 增量] -> [○ 任务拆解] -> [○ 一致性验证]
+[✓ Clarification] -> [● Spec delta] -> [○ Design delta] -> [○ Tasks] -> [○ Validation]
 
-阶段已确认：
+Confirmed stage:
 [✓] {previous_index}/{total} {previous_name} {previous_file}
 
-正在进入：
+Entering:
 [●] {index}/{total} {name} {file}
 
-本阶段目标：
+Stage objective:
 {objective}
 
-我接下来会：
-1. 读取本阶段输入文档
-2. 检查是否存在会影响验收或设计的问题
-3. 先提出澄清问题，或在信息足够时请求你确认生成
+Next I will:
+1. Read the stage input documents
+2. Check for issues that affect acceptance or design
+3. Ask clarification questions, or request generation approval if the inputs are sufficient
 \`\`\`
 
-实现阶段卡片：
+Implementation card:
 \`\`\`text
-文档链已验证，可进入实现。
+The document chain is validated. Implementation may start.
 
 MetaSpec SDD · {change}
-[✓ 需求澄清] -> [✓ Spec 增量] -> [✓ Design 增量] -> [✓ 任务拆解] -> [✓ 一致性验证] -> [● 实现]
+[✓ Clarification] -> [✓ Spec delta] -> [✓ Design delta] -> [✓ Tasks] -> [✓ Validation] -> [● Implementation]
 
-我接下来会：
-1. 按 tasks.md 执行实现任务
-2. 修改必要代码、测试和文档
-3. 运行验证命令并报告结果
+Next I will:
+1. Implement tasks from tasks.md
+2. Modify necessary code, tests, and docs
+3. Run verification commands and report results
 
-只有实现完成且验证通过后，才会请求你确认归档并调用 metaspec done。
+Only after implementation and verification pass will I ask whether to archive and call metaspec done.
 \`\`\`
 
-澄清问题卡片：
+Clarification question card:
 \`\`\`text
-metaspec [{index}/{total} {key} · 澄清中]
+metaspec [{index}/{total} {key} · clarifying]
 
 Q{n}. {question}
 
-推荐：{recommended_option} - {reason}
+Recommended: {recommended_option} - {reason}
 
-为什么问：
+Why this matters:
 {impact}
 
-你可以回复选项、recommended，或给出短答案。回答后我会更新本阶段规则草案；如果没有新的阻塞点，会请求你确认生成 {file}。
+Reply with an option, "recommended", or a short answer. I will update the stage draft and, if there are no new blockers, ask you to approve generating {file}.
 \`\`\`
 
-生成前确认：
+Generation approval:
 \`\`\`text
-metaspec [{index}/{total} {key} · 生成前确认]
+metaspec [{index}/{total} {key} · generation approval]
 
-我没有发现必须阻塞的问题。准备按以下要点生成 {file}：
+I found no blocking questions. I am ready to generate {file} with these points:
 - {point_1}
 - {point_2}
 - {point_3}
 
-不会写入：
-- 与本阶段无关的实现细节
-- 未经确认的新范围
-- 空模板或占位符
+I will not write:
+- Implementation details unrelated to this stage
+- Unconfirmed new scope
+- Empty templates or placeholders
 
-请回复“可以生成”继续，或指出要调整的点。
+Reply "generate" to continue, or tell me what to adjust.
 \`\`\`
 
-写入后确认：
+Post-write confirmation:
 \`\`\`text
-已生成：metaspec/changes/{change}/{file}
+Generated: metaspec/changes/{change}/{file}
 
-请确认 {file} 内容是否符合预期。
+Please confirm whether {file} matches your intent.
 
-下一步你可以：
-- 回复“确认”或“下一步”：我将确认当前阶段，并进入下一阶段。
-- 继续说明要调整的点：我会留在当前阶段继续优化 {file}。
+Next options:
+- Reply "confirm" or "next": I will accept this stage and move to the next one.
+- Describe changes: I will stay in this stage and revise {file}.
 \`\`\``;
 }
 
 function sharedPathRules() {
-  return `路径约束：
-1. 必须以 \`metaspec go --json\` 返回的 change、stage.key、stage.file 和 stage.allowedWritePath 作为唯一权威来源。
-2. 只能写入 \`metaspec go --json\` 返回的 stage.allowedWritePath。
-3. 禁止根据用户需求标题、功能名、slug 或自然语言自行推导 \`metaspec/changes/{change}\`。
-4. 禁止执行 \`mkdir metaspec/changes/...\`、\`New-Item metaspec/changes/...\` 或任何创建/重命名变更目录的操作。
-5. 如果 \`metaspec go --json\` 没有返回活动变更，停止并提示用户先执行 \`metaspec start REQ202604270001-feature-name\`。
-6. 如果发现存在没有 \`.metaspec-state.json\` 的额外变更目录，停止并提示用户运行 \`metaspec doctor\`，不要继续写入该目录。`;
+  return `Path constraints:
+1. Treat change, stage.key, stage.file, and stage.allowedWritePath from \`metaspec go --json\` as the only authority.
+2. Write only to stage.allowedWritePath returned by \`metaspec go --json\`.
+3. Do not infer \`metaspec/changes/{change}\` from the requirement title, feature name, slug, or natural language.
+4. Do not run \`mkdir metaspec/changes/...\`, \`New-Item metaspec/changes/...\`, or any command that creates/renames change directories.
+5. If \`metaspec go --json\` returns no active change, stop and tell the user to run \`metaspec start REQ202604270001-feature-name\`.
+6. If you find extra change directories without \`.metaspec-state.json\`, stop and ask the user to run \`metaspec doctor\`; do not write into those directories.`;
 }
 
 export function listIntegrations() {
@@ -389,13 +389,13 @@ export function installIntegration(root, name, options = {}) {
       integration: "all",
       results,
       files: results.flatMap((result) => result.files),
-      message: "已安装全部 Agent 集成。"
+      message: "Installed all agent integrations."
     };
   }
   if (name === "opencode") return installOpencode(root, options);
   if (name === "claude-code") return installClaudeCode(root, options);
   if (name === "codex") return installCodex(root, options);
-  throw new Error(`不支持的集成：${name}`);
+  throw new Error(`Unsupported integration: ${name}`);
 }
 
 function installOpencode(root, options = {}) {
@@ -495,13 +495,13 @@ export function removeIntegration(root, name, options = {}) {
       integration: "all",
       removed: results.flatMap((result) => result.removed),
       kept: results.flatMap((result) => result.kept),
-      message: "已移除全部 Agent 集成。"
+      message: "Removed all agent integrations."
     };
   }
-  if (!INTEGRATIONS[name]) throw new Error(`不支持的集成：${name}`);
+  if (!INTEGRATIONS[name]) throw new Error(`Unsupported integration: ${name}`);
   const manifestFile = path.join(root, `.metaspec-cli/manifests/integrations/${name}.json`);
   if (!fs.existsSync(manifestFile)) {
-    return { ok: true, integration: name, removed: [], kept: [], message: `未发现 ${name} 集成 manifest。` };
+    return { ok: true, integration: name, removed: [], kept: [], message: `No ${name} integration manifest found.` };
   }
   const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
   const removed = [];
@@ -518,5 +518,5 @@ export function removeIntegration(root, name, options = {}) {
     removed.push(entry.path);
   }
   fs.unlinkSync(manifestFile);
-  return { ok: true, integration: name, removed, kept, message: `已移除 ${name} 集成。` };
+  return { ok: true, integration: name, removed, kept, message: `Removed ${name} integration.` };
 }

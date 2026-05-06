@@ -1,165 +1,90 @@
+# [REQ ID] Design Delta
 
-# [REQ编号] Design 增量设计
+> This document describes incremental changes to the full design.md.
 
-> 本文档描述对 DESIGN.md 的增量变更。
-> 完成后需合并到全量 DESIGN.md 中。
+## 0. Clarification Record
 
-## 0. 用户澄清记录
+### 0.1 Confirmed Design Decisions
 
-### 0.1 已确认设计决策
+- [Decision from delta-spec.md, user confirmation, existing design.md, or code facts]
 
-- [设计决策1：来源于 delta-spec.md、用户确认、现有 DESIGN.md 或代码事实]
-- [设计决策2：来源于 delta-spec.md、用户确认、现有 DESIGN.md 或代码事实]
+### 0.2 Open Questions
 
-### 0.2 待确认问题
+- [ ] [Question affecting interfaces, data, compatibility, risk, or verification]
 
-- [ ] [问题1：影响接口、数据、流程、兼容性或风险控制]
-- [ ] [问题2：如无待确认问题可写“无”]
+### 0.3 Decision Ledger
 
-### 0.3 决策台账
+| Decision | Source | Status | Impact on Design or Implementation |
+|----------|--------|--------|------------------------------------|
+| [Key decision] | [delta-spec/user/design/code fact/agent inference] | [confirmed/needs-confirmation] | [impact] |
 
-| 决策 | 来源 | 状态 | 对设计/实现的影响 |
-|------|------|------|-------------------|
-| [关键决策1] | [delta-spec.md/用户确认/现有DESIGN.md/代码事实/agent推导] | [confirmed/needs-confirmation] | [影响] |
-| [关键决策2] | [来源] | [状态] | [影响] |
+> Do not continue to tasks if an unconfirmed decision changes architecture, interfaces, data model, migration, compatibility, or verification strategy.
 
-> 规则：存在会改变架构、接口契约、数据模型、迁移、兼容性或验证策略的未确认决策时，不应继续生成 tasks。
+## 1. Design Context
 
-## 1. 设计背景
+### 1.1 Goals
 
-### 1.1 设计目标
+[Describe the technical goals for this change.]
 
-[描述本次设计要实现的技术目标]
+### 1.2 Constraints
 
-### 1.2 设计约束
+1. [Constraint]
+2. [Constraint]
 
-1. [约束1]
-2. [约束2]
+### 1.3 Non-Goals
 
-### 1.3 非目标
+- [Explicitly excluded design work]
+- [Deferred work]
 
-- [明确不在本次设计范围内的内容]
-- [推迟到未来工作的内容]
+## 2. Design Decisions
 
+### 2.1 [Decision Area]
 
-## 2. 设计决策
+**Decision**: [State the chosen design clearly.]
 
-### 2.1 [决策领域1]
+**Context**: [Why this decision is needed.]
 
-**决策**：[清晰陈述所做的决策]
+**Options**
 
-**背景**：[解释决策的背景和上下文]
+| Option | Pros | Cons |
+|--------|------|------|
+| Option A (chosen) | [pros] | [cons] |
+| Option B | [pros] | [cons] |
 
-**方案对比**：
+**Rationale**
 
-| 方案 | 优点 | 缺点 |
-|------|------|------|
-| 方案A（采纳） | [优点] | [缺点] |
-| 方案B | [优点] | [缺点] |
-| 方案C | [优点] | [缺点] |
+- [Reason]
+- [Reason]
 
-**理由**：
-- [选择此方案的理由1]
-- [选择此方案的理由2]
+## 3. Data Model Changes
 
-### 2.2 [决策领域2]
+### 3.1 Added Tables or Entities
 
-**决策**：[清晰陈述所做的决策]
+| Name | Field | Type | Constraint | Notes |
+|------|-------|------|------------|-------|
+| [entity] | [field] | [type] | [constraint] | [notes] |
 
-**理由**：
-- [理由1]
-- [理由2]
+### 3.2 Modified Tables or Entities
 
+| Name | Change | Compatibility Notes |
+|------|--------|---------------------|
+| [entity] | [change] | [notes] |
 
-## 3. 数据模型变更
+## 4. Interface Changes
 
-### 3.1 新增表
+### 4.1 Added Interfaces
 
-#### 表名：[new_table]
+| Interface | Request | Response | Error Handling |
+|-----------|---------|----------|----------------|
+| [endpoint/API/event] | [request] | [response] | [errors] |
 
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| id | BIGINT | PK, AUTO_INCREMENT | 主键 |
-| [字段名] | [类型] | [约束] | [说明] |
+### 4.2 Modified Interfaces
 
-**索引设计**：
+| Interface | Change | Compatibility Notes |
+|-----------|--------|---------------------|
+| [interface] | [change] | [notes] |
 
-| 索引名 | 字段 | 类型 | 说明 |
-|--------|------|------|------|
-| [索引名] | [字段] | [类型] | [说明] |
-
-### 3.2 修改表
-
-#### 表名：[existing_table]
-
-**新增字段**：
-
-| 字段 | 类型 | 约束 | 说明 |
-|------|------|------|------|
-| [字段名] | [类型] | [约束] | [说明] |
-
-**修改字段**：
-
-| 字段 | 原类型 | 新类型 | 说明 |
-|------|--------|--------|------|
-| [字段名] | [原类型] | [新类型] | [修改原因] |
-
-**DDL语句**：
-
-```sql
-ALTER TABLE existing_table ADD COLUMN new_field VARCHAR(100);
-```
-
-
-## 4. 接口设计变更
-
-### 4.1 新增接口
-
-#### POST /api/v1/new-resource
-
-**请求**：
-
-```json
-{
-  "field1": "value1",
-  "field2": "value2"
-}
-```
-
-**响应**：
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "data": {
-    "id": 12345
-  }
-}
-```
-
-**错误码**：
-
-| 错误码 | HTTP状态码 | 说明 |
-|--------|-----------|------|
-| E4001 | 400 | 参数校验失败 |
-
-### 4.2 修改接口
-
-#### PUT /api/v1/existing-resource/{id}
-
-**变更说明**：[描述接口变更内容]
-
-**新增参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| [参数名] | [类型] | [是/否] | [说明] |
-
-
-## 5. 流程设计
-
-### 5.1 [流程名称]
+## 5. Flow Design
 
 ```plantuml
 @startuml
@@ -169,42 +94,29 @@ participant Service
 participant Repository
 database Database
 
-Client -> Service: 请求
-Service -> Repository: 查询
-Repository -> Database: SQL
-Database --> Repository: 结果
-Repository --> Service: 数据
-Service --> Client: 响应
+Client -> Service: Request
+Service -> Repository: Query
+Repository -> Database: Read/write
+Database --> Repository: Result
+Repository --> Service: Data
+Service --> Client: Response
 @enduml
 ```
 
-**流程说明**：
+## 6. Risk and Mitigation
 
-1. [步骤1]
-2. [步骤2]
-3. [步骤3]
+| Risk | Likelihood | Impact | Mitigation |
+|------|------------|--------|------------|
+| [risk] | [high/medium/low] | [high/medium/low] | [mitigation] |
 
+## 7. Open Issues
 
-## 6. 风险与缓解
+- [ ] [Issue]
 
-| 风险 | 可能性 | 影响 | 缓解措施 |
-|------|--------|------|----------|
-| [风险描述] | 高/中/低 | 高/中/低 | [缓解措施] |
+## Merge Checklist
 
-
-## 7. 待解决问题
-
-- [ ] [问题1]
-- [ ] [问题2]
-
-
-## 合并检查清单
-
-- [ ] 数据模型变更已添加到 DESIGN.md 第3节
-- [ ] 接口设计变更已添加到 DESIGN.md 第4节
-- [ ] 流程设计已添加到 DESIGN.md 第5节
-- [ ] DDL语句已准备好执行
-- [ ] PlantUML 图表可正常渲染
-
-
-
+- [ ] Data model changes are merged into design.md.
+- [ ] Interface changes are merged into design.md.
+- [ ] Flow changes are merged into design.md.
+- [ ] Migration or rollout steps are explicit where needed.
+- [ ] Diagrams render.

@@ -104,10 +104,10 @@ const outputPath = outputIndex >= 0 ? args[outputIndex + 1] || "" : "";
 const isSpec = outputPath.includes("-spec-") || (!outputPath && (previousCalls > 0 || prompt.includes("Generated design.md") || prompt.includes("spec.md")));
 const isModule = outputPath.includes("-module-");
 const content = isSpec
-  ? "# Mock Codex SPEC\\n\\nDerived from design by mock codex.\\n\\n## 1. 组件定位\\nMock spec.\\n\\n## 2. 领域术语\\nMock terms.\\n\\n## 3. 角色与边界\\nMock boundaries.\\n\\n## 4. DFX 约束\\nMock DFX.\\n\\n## 5. 核心能力\\nMock capabilities.\\n\\n## 6. 数据约束\\nMock data constraints.\\n"
+  ? "# Mock Codex SPEC\\n\\nDerived from design by mock codex.\\n\\n## 1. Component Purpose\\nMock spec.\\n\\n## 2. Domain Terminology\\nMock terms.\\n\\n## 3. Actors and Boundaries\\nMock boundaries.\\n\\n## 4. DFX Constraints\\nMock DFX.\\n\\n## 5. Core Capabilities\\nMock capabilities.\\n\\n## 6. Data Constraints\\nMock data constraints.\\n"
   : isModule
-    ? "# Mock Codex Module\\n\\n## 1. 模块定位\\nModule path: src/auth\\n\\n## 2. 核心流程\\nMock module flow.\\n"
-    : "# Mock Codex Design\\n\\nModule path: src/auth\\n\\n## 1. 设计概述\\nMock design.\\n\\n## 2. 系统架构\\nMock architecture.\\n\\n## 3. 数据模型\\nMock data.\\n\\n## 4. 接口设计\\nMock interfaces.\\n\\n## 5. 核心流程设计\\nMock flow.\\n\\n## 6. 算法设计\\nMock algorithms.\\n\\n## 7. 缓存设计\\nMock cache.\\n\\n## 8. 异常处理设计\\nMock errors.\\n\\n## 9. 监控与日志\\nMock observability.\\n\\n## 10. 安全设计\\nMock security.\\n";
+    ? "# Mock Codex Module\\n\\n## 1. Module Purpose\\nModule path: src/auth\\n\\n## 2. Core Flow\\nMock module flow.\\n"
+    : "# Mock Codex Design\\n\\nModule path: src/auth\\n\\n## 1. Design Overview\\nMock design.\\n\\n## 2. System Architecture\\nMock architecture.\\n\\n## 3. Data Model\\nMock data.\\n\\n## 4. Interface Design\\nMock interfaces.\\n\\n## 5. Core Flow Design\\nMock flow.\\n\\n## 6. Algorithm Design\\nMock algorithms.\\n\\n## 7. Caching Design\\nMock cache.\\n\\n## 8. Error Handling Design\\nMock errors.\\n\\n## 9. Observability\\nMock observability.\\n\\n## 10. Security Design\\nMock security.\\n";
 if (outputIndex >= 0) fs.writeFileSync(args[outputIndex + 1], content, "utf8");
 else process.stdout.write(content);
 `;
@@ -126,8 +126,8 @@ if (process.env.MOCK_EMPTY === "1") process.exit(0);
 const prompt = args[args.indexOf("-p") + 1] || "";
 const isSpec = previousCalls > 0 || prompt.includes("Generated design.md") || prompt.includes("spec.md");
 const result = isSpec
-  ? "# Mock Claude SPEC\\n\\nDerived from design by mock claude.\\n\\n## 1. 组件定位\\nMock spec.\\n\\n## 2. 领域术语\\nMock terms.\\n\\n## 3. 角色与边界\\nMock boundaries.\\n\\n## 4. DFX 约束\\nMock DFX.\\n\\n## 5. 核心能力\\nMock capabilities.\\n\\n## 6. 数据约束\\nMock data constraints.\\n"
-  : "# Mock Claude Design\\n\\nModule path: src/auth\\n\\n## 1. 设计概述\\nMock design.\\n\\n## 2. 系统架构\\nMock architecture.\\n\\n## 3. 数据模型\\nMock data.\\n\\n## 4. 接口设计\\nMock interfaces.\\n\\n## 5. 核心流程设计\\nMock flow.\\n\\n## 6. 算法设计\\nMock algorithms.\\n\\n## 7. 缓存设计\\nMock cache.\\n\\n## 8. 异常处理设计\\nMock errors.\\n\\n## 9. 监控与日志\\nMock observability.\\n\\n## 10. 安全设计\\nMock security.\\n";
+  ? "# Mock Claude SPEC\\n\\nDerived from design by mock claude.\\n\\n## 1. Component Purpose\\nMock spec.\\n\\n## 2. Domain Terminology\\nMock terms.\\n\\n## 3. Actors and Boundaries\\nMock boundaries.\\n\\n## 4. DFX Constraints\\nMock DFX.\\n\\n## 5. Core Capabilities\\nMock capabilities.\\n\\n## 6. Data Constraints\\nMock data constraints.\\n"
+  : "# Mock Claude Design\\n\\nModule path: src/auth\\n\\n## 1. Design Overview\\nMock design.\\n\\n## 2. System Architecture\\nMock architecture.\\n\\n## 3. Data Model\\nMock data.\\n\\n## 4. Interface Design\\nMock interfaces.\\n\\n## 5. Core Flow Design\\nMock flow.\\n\\n## 6. Algorithm Design\\nMock algorithms.\\n\\n## 7. Caching Design\\nMock cache.\\n\\n## 8. Error Handling Design\\nMock errors.\\n\\n## 9. Observability\\nMock observability.\\n\\n## 10. Security Design\\nMock security.\\n";
 process.stdout.write(JSON.stringify({ result }));
 `;
 }
@@ -259,14 +259,14 @@ test("status, go, accept, and archive follow the stage model", () => {
     const acceptedStage = json(run(["--path", root, "accept", "--json"]));
     if (file === "validation.md") {
       assert.equal(acceptedStage.readyForImplementation, true);
-      assert.match(acceptedStage.message, /可进入实现/);
-      assert.ok(acceptedStage.next.some((item) => item.includes("执行实现")));
+      assert.match(acceptedStage.message, /implementation may start/);
+      assert.ok(acceptedStage.next.some((item) => item.includes("Implement")));
     }
   }
 
   go = json(run(["--path", root, "go", "--json"]));
   assert.equal(go.nextAction, "implementation");
-  assert.match(go.message, /可进入实现/);
+  assert.match(go.message, /implementation may start/);
   assert.ok(go.next.some((item) => item.includes("tasks.md")));
 
   const archived = json(run(["--path", root, "archive", "--json"]));
@@ -293,37 +293,37 @@ test("integration install supports Claude Code and Codex repository commands", (
   assert.equal(claude.integration, "claude-code");
   const mainCommand = fs.readFileSync(path.join(root, ".claude/commands/metaspec.md"), "utf8");
   assert.match(mainCommand, /MetaSpec SDD/);
-  assert.match(mainCommand, /阶段切换卡片/);
+  assert.match(mainCommand, /Stage switch card/);
   assert.match(mainCommand, /metaspec accept --json/);
-  assert.match(mainCommand, /nextAction 是 `implementation`/);
-  assert.match(mainCommand, /不要急着调用 `metaspec done --json`/);
+  assert.match(mainCommand, /nextAction is `implementation`|nextAction`? is `implementation`|If nextAction is `implementation`/);
+  assert.match(mainCommand, /do not rush to `metaspec done --json`/);
   assert.match(mainCommand, /metaspec generate && metaspec apply/);
-  assert.match(mainCommand, /澄清加强规则/);
-  assert.match(mainCommand, /模糊词/);
+  assert.match(mainCommand, /Clarification guardrails/);
+  assert.match(mainCommand, /vague language/);
   const proposalCommand = fs.readFileSync(path.join(root, ".claude/commands/metaspec-proposal.md"), "utf8");
-  assert.match(proposalCommand, /可以生成/);
+  assert.match(proposalCommand, /generate/);
   assert.match(proposalCommand, /stage.allowedWritePath/);
-  assert.match(proposalCommand, /澄清问题卡片/);
-  assert.match(proposalCommand, /决策台账/);
-  assert.match(proposalCommand, /agent 推导/);
+  assert.match(proposalCommand, /Clarification question card/);
+  assert.match(proposalCommand, /decision ledger/);
+  assert.match(proposalCommand, /agent inference|agent-inferred/);
   assert.ok(fs.existsSync(path.join(root, ".claude/skills/metaspec/SKILL.md")));
 
   const codex = json(run(["--path", root, "integration", "install", "codex", "--json"]));
   assert.equal(codex.integration, "codex");
   assert.ok(fs.existsSync(path.join(root, ".agents/skills/metaspec/SKILL.md")));
   const designSkill = fs.readFileSync(path.join(root, ".agents/skills/metaspec-delta-design/SKILL.md"), "utf8");
-  assert.match(designSkill, /可以生成/);
-  assert.match(designSkill, /全量 design\.md 不存在/);
-  assert.match(designSkill, /不要伪造/);
-  assert.match(designSkill, /数据模型或 schema、历史数据\/迁移/);
+  assert.match(designSkill, /generate/);
+  assert.match(designSkill, /full design\.md is missing/);
+  assert.match(designSkill, /Do not invent|do not invent/);
+  assert.match(designSkill, /data model\/schema, migration/);
   const tasksSkill = fs.readFileSync(path.join(root, ".agents/skills/metaspec-tasks/SKILL.md"), "utf8");
-  assert.match(tasksSkill, /每轮最多问 3 个澄清问题/);
-  assert.match(tasksSkill, /任务边界、文件范围/);
+  assert.match(tasksSkill, /Ask at most 3 clarification questions per turn/);
+  assert.match(tasksSkill, /task boundaries, file scope/);
   const validationSkill = fs.readFileSync(path.join(root, ".agents/skills/metaspec-validation/SKILL.md"), "utf8");
-  assert.match(validationSkill, /是否允许进入实现/);
-  assert.match(validationSkill, /生成前确认/);
-  assert.match(validationSkill, /validation 特别规则/);
-  assert.match(validationSkill, /需修订后再实现/);
+  assert.match(validationSkill, /whether implementation may start/);
+  assert.match(validationSkill, /Generation approval|generation approval/);
+  assert.match(validationSkill, /Validation-specific rules/);
+  assert.match(validationSkill, /needs revision before implementation/);
   assert.ok(fs.existsSync(path.join(root, ".agents/skills/metaspec-validation/SKILL.md")));
 
   const list = json(run(["--path", root, "integration", "list", "--json"]));
@@ -549,6 +549,15 @@ test("help advertises the minimal generate runner options", () => {
   const result = run(["help"]);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /metaspec generate \[--runner auto\|codex\|claude\|opencode\]/);
+  assert.match(result.stdout, /Common workflow/);
+  assert.doesNotMatch(result.stdout, /常用流程/);
+});
+
+test("help supports Chinese output through the language option", () => {
+  const result = run(["--lang", "zh-CN", "help"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /常用流程/);
+  assert.match(result.stdout, /输出语言，默认 en/);
 });
 
 test("show --json returns the latest run manifest", () => {
@@ -637,14 +646,14 @@ test("fake direct generate writes prompts, llm log, and design-derived spec", ()
   const spec = fs.readFileSync(path.join(runDir, "spec.md"), "utf8");
   assert.match(spec, /Derived from design/);
   const designPrompt = fs.readFileSync(path.join(runDir, "logs/prompts/design.md"), "utf8");
-  assert.match(designPrompt, /DESIGN 模板/);
-  assert.match(designPrompt, /# \[组件名称\] 实现设计文档/);
+  assert.match(designPrompt, /DESIGN template/);
+  assert.match(designPrompt, /# \[Component Name\] Implementation Design/);
   const specPrompt = fs.readFileSync(path.join(runDir, "logs/prompts/spec.md"), "utf8");
   assert.match(specPrompt, /Generated design\.md:/);
   assert.match(specPrompt, /src\/auth/);
-  assert.match(specPrompt, /SPEC 模板/);
-  assert.match(specPrompt, /# \[组件名称\] 规格说明书/);
-  assert.match(specPrompt, /Spec 与 Design 的核心区别/);
+  assert.match(specPrompt, /SPEC template/);
+  assert.match(specPrompt, /# \[Component Name\] Specification/);
+  assert.match(specPrompt, /Spec vs Design/);
 });
 
 test("fake react generate writes module documents and react log", () => {
@@ -712,10 +721,10 @@ test("react non-json output shows per-module progress", () => {
 
   const result = run(["--path", root, "generate", "--mode", "react"], { env: { METASPEC_LLM_PROVIDER: "fake" } });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stderr, /模块 1\/2: Auth \(src\/auth\)/);
-  assert.match(result.stderr, /合成 design\.md/);
-  assert.match(result.stderr, /从 design\.md 反推 spec\.md/);
-  assert.match(result.stdout, /完成 已生成候选文档/);
+  assert.match(result.stderr, /Module 1\/2: Auth \(src\/auth\)/);
+  assert.match(result.stderr, /Composing design\.md/);
+  assert.match(result.stderr, /Deriving spec\.md from design\.md/);
+  assert.match(result.stdout, /Done Generated candidate documents/);
 });
 
 test("generate --json keeps progress out of stderr", () => {
@@ -728,7 +737,7 @@ test("generate --json keeps progress out of stderr", () => {
   assert.equal(result.stderr, "");
   const payload = JSON.parse(result.stdout);
   assert.equal(payload.ok, true);
-  assert.doesNotMatch(result.stdout, /检查 metaspec 项目结构/);
+  assert.doesNotMatch(result.stdout, /Checking MetaSpec project structure/);
 });
 
 test("generate module --mode react uses fake react module generation", () => {
@@ -1026,7 +1035,7 @@ test("apply writes latest spec and design, protects existing files, and supports
   const runSpec = path.join(root, ".metaspec-cli/runs", generated.runId, "spec.md");
   fs.writeFileSync(
     runSpec,
-    "<!-- generated by metaspec stub -->\n# Forced SPEC\n\n## 1. 组件定位\nForced.\n\n## 2. 领域术语\nForced.\n\n## 3. 角色与边界\nForced.\n\n## 4. DFX 约束\nForced.\n\n## 5. 核心能力\nForced.\n\n## 6. 数据约束\nForced.\n",
+    "<!-- generated by metaspec stub -->\n# Forced SPEC\n\n## 1. Component Purpose\nForced.\n\n## 2. Domain Terminology\nForced.\n\n## 3. Actors and Boundaries\nForced.\n\n## 4. DFX Constraints\nForced.\n\n## 5. Core Capabilities\nForced.\n\n## 6. Data Constraints\nForced.\n",
     "utf8"
   );
   const forced = json(run(["--path", root, "apply", "--force", "--json"]));

@@ -75,17 +75,17 @@ export function runDirectGeneration({ paths, run, scan, plan, strategy }) {
 
 function buildDesignPrompt(scan, plan) {
   const templates = readFullTemplates();
-  return `你是 MetaSpec direct design.md 生成 runner。
-当前任务：基于 scan 和 plan 直接生成整体 design.md。
+  return `You are the MetaSpec direct design.md generation runner.
+Task: generate a whole-project design.md from the scan and module plan.
 
 ${commonOutputRules()}
 
-模板要求：
-1. 必须严格使用下面 DESIGN 模板的主章节结构和标题。
-2. 保留模板中的一级/二级标题语义，但用真实项目内容替换占位内容。
-3. 不适用的章节不要删除，写“无明确设计”或“待确认”，并说明依据。
+Template requirements:
+1. Strictly use the main section structure and headings from the DESIGN template below.
+2. Preserve the section meaning, but replace placeholders with real project content.
+3. Do not delete non-applicable sections; write "No explicit design" or "To be confirmed" and explain the basis.
 
-DESIGN 模板：
+DESIGN template:
 ${templates.design}
 
 Project: ${plan.projectName}
@@ -108,23 +108,23 @@ ${scan.fileTree}
 
 function buildSpecPrompt(design) {
   const templates = readFullTemplates();
-  return `你是 MetaSpec direct spec.md 生成 runner。
-当前任务：只从已生成的 design.md 反推出 SPEC。
+  return `You are the MetaSpec direct spec.md generation runner.
+Task: derive the SPEC only from the generated design.md.
 
 ${commonOutputRules()}
 
 ${specBlackBoxRules()}
 
-模板要求：
-1. 必须严格使用下面 SPEC 模板的主章节结构和标题。
-2. 保留模板章节：组件定位、领域术语、角色与边界、DFX约束、核心能力、数据约束。
-3. 用业务语言替换占位内容，不要保留“[组件名称]”“[功能模块名称]”等占位符。
-4. 不要输出 SPEC-annotated 中的写作指导，只输出最终 SPEC 正文。
+Template requirements:
+1. Strictly use the main section structure and headings from the SPEC template below.
+2. Preserve these sections: Component Purpose, Domain Terminology, Actors and Boundaries, DFX Constraints, Core Capabilities, Data Constraints.
+3. Replace placeholders with business language; do not keep placeholder text such as "[Component Name]" or "[Capability Name]".
+4. Do not output the guidance from SPEC-annotated; output only the final SPEC body.
 
-SPEC 模板：
+SPEC template:
 ${templates.spec}
 
-SPEC 方法论参考：
+SPEC methodology reference:
 ${templates.specAnnotated}
 
 Generated design.md:

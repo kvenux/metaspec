@@ -3,10 +3,11 @@ import path from "node:path";
 import { STAGES } from "./constants.js";
 import { nowStamp, readJson, slugify, today, writeJson } from "./util.js";
 import { projectPaths } from "./project.js";
+import { isZh, tr } from "./i18n.js";
 
 export function normalizeChangeName(input) {
   const raw = String(input || "").trim();
-  if (!raw) throw new Error("缺少变更名称。");
+  if (!raw) throw new Error("Missing change name.");
   const slug = slugify(raw);
   if (/^[a-z]{2,}\d{6,}/i.test(raw)) {
     return slug.replace(/^([a-z]+)(\d+)/, (_, prefix, digits) => `${prefix.toUpperCase()}${digits}`);
@@ -18,7 +19,7 @@ export function startChange(input, options = {}) {
   const paths = projectPaths(options);
   const change = normalizeChangeName(input);
   const dir = path.join(paths.changes, change);
-  if (fs.existsSync(dir)) throw new Error(`变更已存在：${change}`);
+  if (fs.existsSync(dir)) throw new Error(tr(options, `Change already exists: ${change}`, `变更已存在：${change}`));
   fs.mkdirSync(dir, { recursive: true });
   const state = initialState(change);
   writeJson(stateFile(paths.root, change), state);
@@ -26,8 +27,8 @@ export function startChange(input, options = {}) {
     ok: true,
     change,
     path: path.relative(paths.root, dir).replaceAll(path.sep, "/"),
-    message: `已创建 metaspec 变更：${change}`,
-    next: ["在 opencode 中执行 /metaspec"]
+    message: tr(options, `Created MetaSpec change: ${change}`, `已创建 metaspec 变更：${change}`),
+    next: [tr(options, "Run /metaspec in your coding agent", "在 opencode 中执行 /metaspec")]
   };
 }
 
@@ -67,7 +68,7 @@ export function resolveChange(options = {}, explicit) {
   if (options.change) return options.change;
   const changes = listChanges(options);
   if (changes.length === 0) return null;
-  if (changes.length > 1) throw new Error(`存在多个活动变更，请使用 --change 指定：${changes.join(", ")}`);
+  if (changes.length > 1) throw new Error(`Multiple active changes found. Use --change to select one: ${changes.join(", ")}`);
   return changes[0];
 }
 
@@ -114,7 +115,7 @@ export function isTemplateContent(content, fileName = "") {
 export function getStatus(options = {}, explicit) {
   const paths = projectPaths(options);
   const change = resolveChange(options, explicit);
-  if (!change) return { ok: false, code: "NO_ACTIVE_CHANGE", message: "未发现活动的 metaspec 变更。" };
+  if (!change) return { ok: false, code: "NO_ACTIVE_CHANGE", message: tr(options, "No active MetaSpec change found.", "未发现活动的 metaspec 变更。") };
   const state = loadState(paths.root, change);
   const stages = STAGES.map((stage) => ({
     ...stage,
@@ -127,14 +128,14 @@ export function getStatus(options = {}, explicit) {
 export function acceptStage(options = {}, explicitChange, explicitStage) {
   const paths = projectPaths(options);
   const change = resolveChange(options, explicitChange);
-  if (!change) throw new Error("未发现活动的 metaspec 变更。");
+  if (!change) throw new Error(tr(options, "No active MetaSpec change found.", "未发现活动的 metaspec 变更。"));
   const state = loadState(paths.root, change);
   const stage = STAGES.find((item) => item.key === (explicitStage || state.currentStage));
-  if (!stage) throw new Error(`未知阶段：${explicitStage}`);
+  if (!stage) throw new Error(tr(options, `Unknown stage: ${explicitStage}`, `未知阶段：${explicitStage}`));
   const status = stageStatus(paths.root, change, state, stage);
-  if (status === "blocked") throw new Error(`前序阶段未完成，不能确认 ${stage.key}。`);
-  if (status === "pending" || status === "clarifying") throw new Error(`缺少阶段文件：${stage.file}`);
-  if (status === "template") throw new Error(`阶段文件仍像模板，不能确认：${stage.file}`);
+  if (status === "blocked") throw new Error(tr(options, `Previous stages are incomplete; cannot accept ${stage.key}.`, `前序阶段未完成，不能确认 ${stage.key}。`));
+  if (status === "pending" || status === "clarifying") throw new Error(tr(options, `Missing stage file: ${stage.file}`, `缺少阶段文件：${stage.file}`));
+  if (status === "template") throw new Error(tr(options, `Stage file still looks like a template; cannot accept: ${stage.file}`, `阶段文件仍像模板，不能确认：${stage.file}`));
   const record = ensureStageRecord(state, stage);
   record.status = "confirmed";
   record.clarified = true;
@@ -158,37 +159,41 @@ export function acceptStage(options = {}, explicitChange, explicitStage) {
     nextStage: next ?? null,
     completed: !next,
     readyForImplementation: !next,
-    message: next ? `已确认 ${stage.key}，进入 ${next.name}。` : `已确认 ${stage.key}，文档链已验证，可进入实现。`,
-    next: next ? ["继续在 opencode 中执行 /metaspec"] : ["执行实现任务", "实现完成并验证通过后执行 metaspec done"]
+    message: next
+      ? tr(options, `Accepted ${stage.key}; moving to ${next.name}.`, `已确认 ${stage.key}，进入 ${next.name}。`)
+      : tr(options, `Accepted ${stage.key}; the document chain is validated and implementation may start.`, `已确认 ${stage.key}，文档链已验证，可进入实现。`),
+    next: next
+      ? [tr(options, "Continue with /metaspec in your coding agent", "继续在 opencode 中执行 /metaspec")]
+      : isZh(options) ? ["执行实现任务", "实现完成并验证通过后执行 metaspec done"] : ["Implement the tasks", "Run metaspec done after implementation and verification pass"]
   };
 }
 
 export function archiveChange(options = {}, explicitChange) {
   const paths = projectPaths(options);
   const change = resolveChange(options, explicitChange);
-  if (!change) throw new Error("未发现活动的 metaspec 变更。");
+  if (!change) throw new Error(tr(options, "No active MetaSpec change found.", "未发现活动的 metaspec 变更。"));
   const source = path.join(paths.changes, change);
-  if (!fs.existsSync(source)) throw new Error(`变更目录不存在：${change}`);
+  if (!fs.existsSync(source)) throw new Error(tr(options, `Change directory does not exist: ${change}`, `变更目录不存在：${change}`));
   const state = loadState(paths.root, change);
   if (!options.force) {
     for (const stage of STAGES) {
       if (stageStatus(paths.root, change, state, stage) !== "confirmed") {
-        throw new Error(`变更尚未完成，不能归档：${stage.key}`);
+        throw new Error(tr(options, `Change is not complete; cannot archive: ${stage.key}`, `变更尚未完成，不能归档：${stage.key}`));
       }
       if (!fs.existsSync(path.join(source, stage.file))) {
-        throw new Error(`缺少阶段文件，不能归档：${stage.file}`);
+        throw new Error(tr(options, `Missing stage file; cannot archive: ${stage.file}`, `缺少阶段文件，不能归档：${stage.file}`));
       }
     }
   }
   fs.mkdirSync(paths.archives, { recursive: true });
   const target = path.join(paths.archives, `${today()}-${change}`);
-  if (fs.existsSync(target)) throw new Error(`归档目录已存在：${path.relative(paths.root, target)}`);
+  if (fs.existsSync(target)) throw new Error(tr(options, `Archive directory already exists: ${path.relative(paths.root, target)}`, `归档目录已存在：${path.relative(paths.root, target)}`));
   fs.renameSync(source, target);
   return {
     ok: true,
     change,
     archive: path.relative(paths.root, target).replaceAll(path.sep, "/"),
-    message: `已归档变更：${change}`,
-    next: ["将 delta-spec.md 合并到全量 spec.md", "将 delta-design.md 合并到全量 design.md"]
+    message: tr(options, `Archived change: ${change}`, `已归档变更：${change}`),
+    next: isZh(options) ? ["将 delta-spec.md 合并到全量 spec.md", "将 delta-design.md 合并到全量 design.md"] : ["Merge delta-spec.md into the full spec.md", "Merge delta-design.md into the full design.md"]
   };
 }

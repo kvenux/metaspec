@@ -1,118 +1,96 @@
+# [REQ ID] Requirement Clarification
 
-# [REQ编号] 需求澄清
+## 0. User Clarification Log
 
-## 0. 用户澄清记录
+### 0.1 Confirmed Decisions
 
-### 0.1 已确认结论
+- [Decision 1: confirmed by the user, existing spec/design, or repository facts]
+- [Decision 2: confirmed by the user, existing spec/design, or repository facts]
 
-- [结论1：来源于用户确认或现有文档]
-- [结论2：来源于用户确认或现有文档]
+### 0.2 Open Questions
 
-### 0.2 待确认问题
+- [ ] [Question 1: must be answered before later stages]
+- [ ] [Question 2: write "None" when there are no open questions]
 
-- [ ] [问题1：需要用户确认后才能进入后续阶段]
-- [ ] [问题2：如无待确认问题可写“无”]
+### 0.3 Decision Ledger
 
-### 0.3 决策台账
+| Decision | Source | Status | Impact |
+|----------|--------|--------|--------|
+| [Key decision 1] | [user/spec/design/code fact/agent inference] | [confirmed/needs-confirmation] | [scope, acceptance, or implementation impact] |
+| [Key decision 2] | [source] | [status] | [impact] |
 
-| 决策 | 来源 | 状态 | 影响 |
-|------|------|------|------|
-| [关键决策1] | [用户确认/现有spec/design/代码事实/agent推导] | [confirmed/needs-confirmation] | [影响范围、验收或实现边界] |
-| [关键决策2] | [来源] | [状态] | [影响] |
+> Any agent inference that affects business scope, data model, migration, compatibility, permissions, testability, or acceptance criteria must be confirmed before the next stage.
 
-> 规则：影响业务边界、数据模型、迁移、兼容性、权限、测试或验收口径的 agent 推导决策，必须在进入下一阶段前由用户确认。
+## 1. Background and Motivation
 
-## 1. 背景与动机
+### 1.1 Current Pain
 
-### 1.1 现状痛点
+[Describe the current limitation or user pain.]
 
-[描述当前系统的不足、用户痛点]
+### 1.2 Business Driver
 
-### 1.2 业务驱动
+[Describe the expected value and why the change matters now.]
 
-[描述业务驱动因素、期望价值]
+## 2. Change Scope
 
-## 2. 变更内容
+### 2.1 Capabilities
 
-### 2.1 功能清单
+| ID | Capability | Priority | Notes |
+|----|------------|----------|-------|
+| F-01 | [Capability name] | P0 | [One sentence summary] |
+| F-02 | [Capability name] | P1 | [One sentence summary] |
 
-| 功能ID | 功能名称 | 优先级 | 说明 |
-|--------|----------|--------|------|
-| F-01 | [功能名] | P0 | [一句话说明] |
-| F-02 | [功能名] | P0 | [一句话说明] |
-| F-03 | [功能名] | P1 | [一句话说明] |
+Priority: P0 is required for the minimum usable change; P1 is important but not blocking; P2 is deferred.
 
-> **优先级定义**
-> - P0：MVP必须，没有此功能产品无法上线
-> - P1：重要增强，显著提升核心体验
-> - P2：未来优化，锦上添花
+### 2.2 User Stories
 
-### 2.2 用户故事
+**US-01**: As a [role], I want [behavior], so that [value].
 
-**US-01**：作为[角色]，我希望[做什么]，以便[获得什么价值]。
+Acceptance criteria:
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
 
-**验收标准**：
-- [ ] [标准1]
-- [ ] [标准2]
+### 2.3 Out of Scope
 
-**US-02**：作为[角色]，我希望[做什么]，以便[获得什么价值]。
+- [Explicitly excluded capability]
+- [Deferred capability]
 
-**验收标准**：
-- [ ] [标准1]
-- [ ] [标准2]
+## 3. Impact Analysis
 
-### 2.3 不在范围内
+### 3.1 Affected Spec Areas
 
-- [明确排除的功能点1]
-- [明确排除的功能点2]
+| Spec Area | Change Type | Notes |
+|-----------|-------------|-------|
+| Core Capabilities | [added/modified/removed] | [notes] |
+| Data Constraints | [added/modified/removed] | [notes] |
 
-## 3. 影响分析
+### 3.2 Affected Design Areas
 
-### 3.1 受影响的规格
+| Design Area | Change Type | Notes |
+|-------------|-------------|-------|
+| Data Model | [added/modified/removed] | [notes] |
+| Interface Design | [added/modified/removed] | [notes] |
 
-| 规格章节 | 变更类型 | 说明 |
-|----------|----------|------|
-| 5.X 核心能力 | 新增 | [说明] |
-| 6.X 数据约束 | 修改 | [说明] |
+### 3.3 Breaking Changes
 
-### 3.2 受影响的设计
+- **Breaking change**: [yes/no]
+- **Impact**: [affected users, APIs, data, or operations]
+- **Migration**: [migration path if needed]
 
-| 设计章节 | 变更类型 | 说明 |
-|----------|----------|------|
-| 3.X 数据模型 | 新增 | [说明] |
-| 4.X 接口设计 | 新增 | [说明] |
+### 3.4 Dependencies
 
-### 3.3 破坏性变更
+- [External team, system, release, or data dependency]
 
-- **是否有破坏性变更**：[是/否]
-- **影响范围**：[描述影响范围]
-- **迁移方案**：[如有破坏性变更，描述迁移方案]
+## 4. New DFX Constraints
 
-### 3.4 依赖关系
+| Category | Constraint | Priority |
+|----------|------------|----------|
+| Performance | [latency/throughput/resource limit] | [P0/P1/P2] |
+| Reliability | [availability/fallback/data consistency] | [P0/P1/P2] |
+| Security | [auth/data protection/audit] | [P0/P1/P2] |
 
-- [依赖项1：如需要其他团队配合]
-- [依赖项2：如依赖其他系统变更]
+## 5. Milestones
 
-## 4. DFX约束（本次新增）
-
-### 4.1 性能
-
-| 约束项 | 指标 | 优先级 |
-|--------|------|--------|
-| [操作名] | [响应时间/吞吐量] | P0 |
-
-### 4.2 可靠性
-
-| 约束项 | 要求 | 优先级 |
-|--------|------|--------|
-| [场景] | [可靠性要求] | P0 |
-
-## 5. 里程碑
-
-| 里程碑 | 交付内容 | 完成标志 |
-|--------|----------|----------|
-| M1 | [功能集合] | [可验证的完成标准] |
-| M2 | [功能集合] | [可验证的完成标准] |
-
-
-
+| Milestone | Deliverable | Done Means |
+|-----------|-------------|------------|
+| M1 | [deliverable] | [verifiable completion signal] |

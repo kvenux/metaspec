@@ -8,7 +8,7 @@ import { commonOutputRules, readFullTemplates, specBlackBoxRules } from "./templ
 export function runExternalGeneration({ paths, run, scan, plan, strategy }) {
   const executable = strategy.executable || findExecutable(strategy.runner);
   if (!executable) {
-    return failure("RUNNER_NOT_FOUND", `未找到外部 runner：${strategy.runner}`, { runner: strategy.runner });
+    return failure("RUNNER_NOT_FOUND", `External runner not found: ${strategy.runner}`, { runner: strategy.runner });
   }
 
   const guard = createWorkspaceGuard(paths, run);
@@ -80,7 +80,7 @@ export function runExternalGeneration({ paths, run, scan, plan, strategy }) {
 export function runRunnerTask({ paths, run, executable, strategy, task, prompt }) {
   const resolvedExecutable = executable || strategy.executable || findExecutable(strategy.runner);
   if (!resolvedExecutable) {
-    return failure("RUNNER_NOT_FOUND", `未找到外部 runner：${strategy.runner}`, { runner: strategy.runner });
+    return failure("RUNNER_NOT_FOUND", `External runner not found: ${strategy.runner}`, { runner: strategy.runner });
   }
 
   const attempts = [strategy.model, strategy.fallbackModel].filter(Boolean);
@@ -110,7 +110,7 @@ export function runRunnerTask({ paths, run, executable, strategy, task, prompt }
     attemptLogs.push(commandLog);
 
     if (result.error || result.status !== 0) {
-      lastFailure = failure("EXTERNAL_RUNNER_FAILED", `外部 runner 执行失败：${strategy.runner} ${task}`, {
+      lastFailure = failure("EXTERNAL_RUNNER_FAILED", `External runner failed: ${strategy.runner} ${task}`, {
         runner: strategy.runner,
         task,
         status: result.status,
@@ -144,7 +144,7 @@ export function runRunnerTask({ paths, run, executable, strategy, task, prompt }
     };
   }
 
-  return lastFailure || failure("EXTERNAL_RUNNER_FAILED", `外部 runner 执行失败：${strategy.runner} ${task}`, { runner: strategy.runner, task });
+  return lastFailure || failure("EXTERNAL_RUNNER_FAILED", `External runner failed: ${strategy.runner} ${task}`, { runner: strategy.runner, task });
 }
 
 function buildArgs({ paths, strategy, outputFile }) {
@@ -186,14 +186,14 @@ function parseOutput({ strategy, task, stdout, outputFile }) {
       return {
         ok: false,
         code: "EXTERNAL_RUNNER_UNPARSEABLE_OUTPUT",
-        message: `外部 runner 未输出可解析的 Markdown：${strategy.runner} ${task}`
+        message: `External runner did not output parseable Markdown: ${strategy.runner} ${task}`
       };
     }
   }
 
   const trimmed = stdout.trim();
   if (!trimmed) {
-    return { ok: false, code: "EXTERNAL_RUNNER_EMPTY_OUTPUT", message: `外部 runner 输出为空：${strategy.runner} ${task}` };
+    return { ok: false, code: "EXTERNAL_RUNNER_EMPTY_OUTPUT", message: `External runner output is empty: ${strategy.runner} ${task}` };
   }
 
   try {
@@ -212,28 +212,28 @@ function parseOutput({ strategy, task, stdout, outputFile }) {
   return {
     ok: false,
     code: "EXTERNAL_RUNNER_UNPARSEABLE_OUTPUT",
-    message: `外部 runner 未输出可解析的 Markdown：${strategy.runner} ${task}`
+    message: `External runner did not output parseable Markdown: ${strategy.runner} ${task}`
   };
 }
 
 function buildDesignPrompt(scan, plan, runner) {
   const templates = readFullTemplates();
-  return `你是 MetaSpec 文档生成 runner（${runner}）。
-当前任务只允许读取和分析仓库。
-禁止修改任何文件。
-禁止调用 git apply。
-禁止写入 metaspec/specs。
-MetaSpec CLI 会负责保存文件。
-请只输出 design.md 的最终 Markdown。
+  return `You are the MetaSpec documentation generation runner (${runner}).
+Read and analyze the repository only.
+Do not modify any files.
+Do not call git apply.
+Do not write to metaspec/specs.
+The MetaSpec CLI will save files.
+Output only the final Markdown for design.md.
 
 ${commonOutputRules()}
 
-模板要求：
-1. 必须严格使用下面 DESIGN 模板的主章节结构和标题。
-2. 保留模板中的一级/二级标题语义，但用真实项目内容替换占位内容。
-3. 不适用的章节不要删除，写“无明确设计”或“待确认”，并说明依据。
+Template requirements:
+1. Strictly use the main section structure and headings from the DESIGN template below.
+2. Preserve the section meaning, but replace placeholders with real project content.
+3. Do not delete non-applicable sections; write "No explicit design" or "To be confirmed" and explain the basis.
 
-DESIGN 模板：
+DESIGN template:
 ${templates.design}
 
 Project: ${plan.projectName}
@@ -247,28 +247,28 @@ ${scan.fileTree}
 
 function buildSpecPrompt(design, runner) {
   const templates = readFullTemplates();
-  return `你是 MetaSpec 文档生成 runner（${runner}）。
-禁止修改任何文件。
-禁止调用 git apply。
-禁止写入 metaspec/specs。
-MetaSpec CLI 会负责保存文件。
-请只输出 spec.md 的最终 Markdown。
-必须只从下面生成后的 design.md 反推 spec.md，不要直接使用源码上下文。
+  return `You are the MetaSpec documentation generation runner (${runner}).
+Do not modify any files.
+Do not call git apply.
+Do not write to metaspec/specs.
+The MetaSpec CLI will save files.
+Output only the final Markdown for spec.md.
+Derive spec.md only from the generated design.md below. Do not use source context directly.
 
 ${commonOutputRules()}
 
 ${specBlackBoxRules()}
 
-模板要求：
-1. 必须严格使用下面 SPEC 模板的主章节结构和标题。
-2. 保留模板章节：组件定位、领域术语、角色与边界、DFX约束、核心能力、数据约束。
-3. 用业务语言替换占位内容，不要保留“[组件名称]”“[功能模块名称]”等占位符。
-4. 不要输出 SPEC-annotated 中的写作指导，只输出最终 SPEC 正文。
+Template requirements:
+1. Strictly use the main section structure and headings from the SPEC template below.
+2. Preserve these sections: Component Purpose, Domain Terminology, Actors and Boundaries, DFX Constraints, Core Capabilities, Data Constraints.
+3. Replace placeholders with business language; do not keep placeholder text such as "[Component Name]" or "[Capability Name]".
+4. Do not output guidance from SPEC-annotated; output only the final SPEC body.
 
-SPEC 模板：
+SPEC template:
 ${templates.spec}
 
-SPEC 方法论参考：
+SPEC methodology reference:
 ${templates.specAnnotated}
 
 Generated design.md:
@@ -298,11 +298,11 @@ function workspaceFailure(changedFiles) {
   if (!changedFiles.length) return null;
   const modifiedSpecs = changedFiles.filter((file) => file === "metaspec/specs/spec.md" || file === "metaspec/specs/design.md");
   if (modifiedSpecs.length === changedFiles.length) {
-    return failure("EXTERNAL_RUNNER_MODIFIED_SPECS", "外部 runner 修改了 metaspec/specs，生成已中止。请检查 git diff。", {
+    return failure("EXTERNAL_RUNNER_MODIFIED_SPECS", "External runner modified metaspec/specs; generation was aborted. Check git diff.", {
       modifiedSpecs
     });
   }
-  return failure("EXTERNAL_RUNNER_MODIFIED_WORKTREE", "外部 runner 修改了 run 目录之外的工作区文件，生成已中止。请检查 git diff。", {
+  return failure("EXTERNAL_RUNNER_MODIFIED_WORKTREE", "External runner modified files outside the run directory; generation was aborted. Check git diff.", {
     modifiedFiles: changedFiles
   });
 }
@@ -388,15 +388,15 @@ function failure(code, message, extra = {}) {
 function nextForError(code) {
   switch (code) {
     case "RUNNER_NOT_FOUND":
-      return ["metaspec generate --runner auto", "确认对应 CLI 已安装并登录"];
+      return ["metaspec generate --runner auto", "Confirm the matching CLI is installed and authenticated"];
     case "EXTERNAL_RUNNER_FAILED":
-      return ["查看 run 目录 logs/*stdout.log 和 logs/*stderr.log", "metaspec generate --runner auto"];
+      return ["Inspect logs/*stdout.log and logs/*stderr.log under the run directory", "metaspec generate --runner auto"];
     case "EXTERNAL_RUNNER_EMPTY_OUTPUT":
     case "EXTERNAL_RUNNER_UNPARSEABLE_OUTPUT":
-      return ["查看 run 目录 logs/*stdout.log 和 logs/*stderr.log", "确认 runner 最终输出 Markdown 标题"];
+      return ["Inspect logs/*stdout.log and logs/*stderr.log under the run directory", "Confirm the runner's final output has a Markdown heading"];
     case "EXTERNAL_RUNNER_MODIFIED_WORKTREE":
     case "EXTERNAL_RUNNER_MODIFIED_SPECS":
-      return ["git diff", "检查外部 runner 修改后再重新生成"];
+      return ["git diff", "Review external runner modifications before regenerating"];
     default:
       return ["metaspec show"];
   }

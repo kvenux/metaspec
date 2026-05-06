@@ -17,7 +17,7 @@ export function runReactGeneration({ paths, run, scan, plan, strategy, progress 
   const moduleResults = [];
   for (const [index, module] of plan.modules.entries()) {
     const slug = `${slugify(module.path) || "project-root"}.md`;
-    progress?.(`模块 ${index + 1}/${plan.modules.length}: ${module.name} (${module.path})`);
+    progress?.(`Module ${index + 1}/${plan.modules.length}: ${module.name} (${module.path})`);
     const prompt = buildModulePrompt(scan, module);
     const promptFile = path.join(modulePromptsDir, slug);
     fs.writeFileSync(promptFile, prompt, "utf8");
@@ -50,7 +50,7 @@ export function runReactGeneration({ paths, run, scan, plan, strategy, progress 
     });
   }
 
-  progress?.("合成 design.md");
+  progress?.("Composing design.md");
   const designPrompt = buildDesignPrompt(plan, moduleResults);
   const designPromptFile = path.join(promptsDir, "design.md");
   fs.writeFileSync(designPromptFile, designPrompt, "utf8");
@@ -63,7 +63,7 @@ export function runReactGeneration({ paths, run, scan, plan, strategy, progress 
   if (!designResult.ok && !designResult.text) return designResult;
   const design = designResult.text;
 
-  progress?.("从 design.md 反推 spec.md");
+  progress?.("Deriving spec.md from design.md");
   const specPrompt = buildSpecPrompt(design);
   const specPromptFile = path.join(promptsDir, "spec.md");
   fs.writeFileSync(specPromptFile, specPrompt, "utf8");
@@ -117,7 +117,7 @@ export function runReactGeneration({ paths, run, scan, plan, strategy, progress 
   };
   const reactLogFile = path.join(run.dir, "logs/react.json");
   writeJson(reactLogFile, reactLog);
-  progress?.("模块优先生成完成");
+  progress?.("Module-first generation complete");
 
   return {
     ok: true,
@@ -157,19 +157,19 @@ function buildModulePrompt(scan, module) {
   const moduleTree = buildTree(moduleFiles);
   const readmeContext = scan.readmeFiles.map((file) => `--- ${file.path}${file.truncated ? " (truncated)" : ""} ---\n${file.content}`).join("\n\n");
   const docsContext = scan.docsFiles.map((file) => `--- ${file.path}${file.truncated ? " (truncated)" : ""} ---\n${file.content}`).join("\n\n");
-  return `你是 MetaSpec 模块文档生成 runner。
-当前任务：为一个模块生成中间模块设计文档，供后续合成 design.md 使用。
+  return `You are the MetaSpec module documentation runner.
+Task: generate an intermediate module design document for later design.md synthesis.
 
 ${commonOutputRules()}
 
-模块文档要求：
-1. 模块文档是白盒中间材料，可以包含文件、类、框架、数据表等实现细节。
-2. 必须说明模块定位、目录结构、核心组件、核心流程、接口与数据结构、关键约束。
-3. 内容必须基于给定模块路径和仓库只读分析，不要编造不存在的文件。
+Module document requirements:
+1. Module docs are white-box intermediate material and may include files, classes, frameworks, and tables.
+2. Explain module purpose, directory structure, core components, core flows, interfaces/data structures, and key constraints.
+3. Base the content on the given module path and read-only repository analysis. Do not invent files.
 
-模块：${module.name}
-路径：${module.path}
-描述：${module.description}
+Module: ${module.name}
+Path: ${module.path}
+Description: ${module.description}
 
 Module files:
 ${moduleFiles.slice(0, 40).map((file) => `- ${file}`).join("\n") || "- none"}
@@ -187,52 +187,52 @@ ${docsContext || "(none)"}
 
 function buildDesignPrompt(plan, moduleResults) {
   const templates = readFullTemplates();
-  return `你是 MetaSpec design.md 生成 runner。
-当前任务：基于模块文档合成项目级实现设计文档。
+  return `You are the MetaSpec design.md generation runner.
+Task: synthesize a project-level implementation design document from module documents.
 
 ${commonOutputRules()}
 
-模板要求：
-1. 必须严格使用下面 DESIGN 模板的主章节结构和标题。
-2. 保留模板中的一级/二级标题语义，但用真实项目内容替换占位内容。
-3. 不适用的章节不要删除，写“无明确设计”或“待确认”，并说明依据。
-4. design.md 是白盒实现设计，可以写技术栈、模块、接口、数据模型、部署、安全、监控等实现信息。
+Template requirements:
+1. Strictly use the main section structure and headings from the DESIGN template below.
+2. Preserve section meaning, but replace placeholders with real project content.
+3. Do not delete non-applicable sections; write "No explicit design" or "To be confirmed" and explain the basis.
+4. design.md is a white-box implementation design and may include technology stack, modules, APIs, data model, deployment, security, and observability.
 
-DESIGN 模板：
+DESIGN template:
 ${templates.design}
 
-项目：${plan.projectName}
-语言：${plan.language || "unknown"}
-模块：
+Project: ${plan.projectName}
+Language: ${plan.language || "unknown"}
+Modules:
 ${moduleResults.map((module) => `- ${module.module.name}: ${module.module.path}`).join("\n")}
 
-模块文档：
+Module documents:
 ${moduleResults.map((module) => module.content).join("\n\n")}
 `;
 }
 
 function buildSpecPrompt(design) {
   const templates = readFullTemplates();
-  return `你是 MetaSpec spec.md 生成 runner。
-当前任务：只从已生成的 design.md 反推出 SPEC。
+  return `You are the MetaSpec spec.md generation runner.
+Task: derive the SPEC only from the generated design.md.
 
 ${commonOutputRules()}
 
 ${specBlackBoxRules()}
 
-模板要求：
-1. 必须严格使用下面 SPEC 模板的主章节结构和标题。
-2. 保留模板章节：组件定位、领域术语、角色与边界、DFX约束、核心能力、数据约束。
-3. 用业务语言替换占位内容，不要保留“[组件名称]”“[功能模块名称]”等占位符。
-4. 不要输出 SPEC-annotated 中的写作指导，只输出最终 SPEC 正文。
+Template requirements:
+1. Strictly use the main section structure and headings from the SPEC template below.
+2. Preserve these sections: Component Purpose, Domain Terminology, Actors and Boundaries, DFX Constraints, Core Capabilities, Data Constraints.
+3. Replace placeholders with business language; do not keep placeholder text such as "[Component Name]" or "[Capability Name]".
+4. Do not output guidance from SPEC-annotated; output only the final SPEC body.
 
-SPEC 模板：
+SPEC template:
 ${templates.spec}
 
-SPEC 方法论参考：
+SPEC methodology reference:
 ${templates.specAnnotated}
 
-已生成 design.md：
+Generated design.md:
 ${design}
 `;
 }
@@ -260,62 +260,62 @@ function renderTree(node, depth, lines) {
 }
 
 function fakeReactDesign(plan, moduleResults, model) {
-  return `# MetaSpec 实现设计文档
+  return `# MetaSpec Implementation Design
 
 <!-- generated by metaspec fake react -->
 
 Provider: fake
 Model: ${model}
 
-## 1. 设计概述
+## 1. Design Overview
 
 Fake react design synthesized from module documents.
 
-## 2. 系统架构
+## 2. System Architecture
 
 Project: ${plan.projectName}
 
-### 2.1 架构概览
+### 2.1 Architecture Overview
 
 Module-first mode generates module documents before project-level synthesis.
 
-### 2.2 模块职责
+### 2.2 Module Responsibilities
 
 ${moduleResults.map((module) => `- ${module.module.name}: ${module.module.path}`).join("\n")}
 
-### 2.3 技术栈
+### 2.3 Technology Stack
 
 Fake provider does not infer real technology stack.
 
-## 3. 数据模型
+## 3. Data Model
 
 Run manifest stores artifact paths and generation metadata.
 
-## 4. 接口设计
+## 4. Interface Design
 
-用户入口为 metaspec generate、metaspec show、metaspec apply。
+User entry points are metaspec generate, metaspec show, and metaspec apply.
 
-## 5. 核心流程设计
+## 5. Core Flow Design
 
 React mode generates module documents first, synthesizes design.md, then derives spec.md from design.md.
 
-## 6. 算法设计
+## 6. Algorithm Design
 
-无复杂算法设计。
+No complex algorithm is required.
 
-## 7. 缓存设计
+## 7. Caching Design
 
-无明确缓存设计。
+No explicit cache is used.
 
-## 8. 异常处理设计
+## 8. Error Handling Design
 
 Fake react provider does not call a network API.
 
-## 9. 监控与日志
+## 9. Observability
 
 Generation artifacts remain isolated under .metaspec-cli/runs before apply.
 
-## 10. 安全设计
+## 10. Security Design
 
 This is deterministic fake react output for tests.
 `;

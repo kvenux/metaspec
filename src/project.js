@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { CONFIG_YAML, DOC_DIRS, RUNTIME_DIRS } from "./constants.js";
 import { ensureDir, rel, resolveRoot, writeFileIfNeeded } from "./util.js";
 import { installIntegration } from "./integrations.js";
+import { tr } from "./i18n.js";
 
 const GITIGNORE_LINES = [".metaspec-cli/runs/", ".metaspec-cli/cache/", ".metaspec-cli/tmp/"];
 
@@ -58,23 +59,23 @@ export function initProject(targetPath, options = {}) {
       config: ".metaspec-cli/config.yaml"
     },
     sections: [
-      ...(created.length ? [{ title: "已创建", items: created }] : []),
-      ...(skipped.length ? [{ title: "已存在", items: skipped }] : []),
+      ...(created.length ? [{ title: tr(options, "Created", "已创建"), items: created }] : []),
+      ...(skipped.length ? [{ title: tr(options, "Already exists", "已存在"), items: skipped }] : []),
       {
-        title: "本地生成工具",
-        items: agentSummaryItems(externalAgents).map((item) => item.trim())
+        title: tr(options, "Local generation tools", "本地生成工具"),
+        items: agentSummaryItems(externalAgents, options).map((item) => item.trim())
       },
-      ...(existingDocs.length ? [{ title: "已有权威文档", items: existingDocs }] : [])
+      ...(existingDocs.length ? [{ title: tr(options, "Existing authoritative docs", "已有权威文档"), items: existingDocs }] : [])
     ],
     items: [
-      ...created.map((item) => `已补齐：${item}`),
-      ...skipped.map((item) => `已存在：${item}`),
-      `默认生成工具：${resolveDefaultRunner(options)}`,
-      "已检查本地 Agent 工具：",
-      ...agentSummaryItems(externalAgents),
-      ...existingDocs.map((item) => `已存在真实全量文档，如需覆盖请执行 metaspec apply --force：${item}`)
+      ...created.map((item) => tr(options, `Created: ${item}`, `已补齐：${item}`)),
+      ...skipped.map((item) => tr(options, `Already exists: ${item}`, `已存在：${item}`)),
+      tr(options, `Default runner: ${resolveDefaultRunner(options)}`, `默认生成工具：${resolveDefaultRunner(options)}`),
+      tr(options, "Checked local agent tools:", "已检查本地 Agent 工具："),
+      ...agentSummaryItems(externalAgents, options),
+      ...existingDocs.map((item) => tr(options, `Existing full doc. Use metaspec apply --force to overwrite: ${item}`, `已存在真实全量文档，如需覆盖请执行 metaspec apply --force：${item}`))
     ],
-    message: `已检查 metaspec 项目：${root}`,
+    message: tr(options, `Checked MetaSpec project: ${root}`, `已检查 metaspec 项目：${root}`),
     next: ["metaspec generate", "metaspec show", "metaspec apply"]
   };
 }
@@ -285,10 +286,12 @@ function quoteYaml(value) {
   return JSON.stringify(value);
 }
 
-function agentSummaryItems(externalAgents) {
+function agentSummaryItems(externalAgents, options = {}) {
   return Object.entries(externalAgents).map(([name, agent]) => {
-    if (!agent.available) return `  ${name}: 未发现`;
-    const model = agent.recommendedModel ? `，推荐模型 ${agent.recommendedModel}` : "";
-    return `  ${name}: 可用${model}`;
+    if (!agent.available) return tr(options, `  ${name}: not found`, `  ${name}: 未发现`);
+    const model = agent.recommendedModel
+      ? tr(options, `, recommended model ${agent.recommendedModel}`, `，推荐模型 ${agent.recommendedModel}`)
+      : "";
+    return tr(options, `  ${name}: available${model}`, `  ${name}: 可用${model}`);
   });
 }

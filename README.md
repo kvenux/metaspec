@@ -2,6 +2,8 @@
 
 Recover the system spec first. Change it safely after.
 
+[中文说明](docs/zh-CN/README.md)
+
 MetaSpec is a spec-driven development workflow for existing codebases. It scans a repository, recovers a full `spec.md` and `design.md`, then routes every new requirement through proposal, spec delta, design delta, tasks, validation, implementation, and archive.
 
 Most AI coding workflows start from the next feature request. MetaSpec starts one layer earlier: it rebuilds the current product and technical baseline so future changes have something stable to diff against.

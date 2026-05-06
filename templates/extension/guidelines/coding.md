@@ -1,41 +1,37 @@
+# Coding Guidelines
 
-# 编码规范
+> Use this template to record repository-level coding constraints for developers and AI agents.
 
-> 本模板用于记录项目级编码约束，供开发者和 AI Agent 执行任务时引用。
+## 1. Principles
 
-## 1. 基本原则
+1. Follow the existing architecture and code style.
+2. New code must trace back to accepted delta-spec.md rules or delta-design.md decisions.
+3. Do not introduce complex abstractions for unconfirmed future needs.
 
-1. 遵循项目现有架构和代码风格。
-2. 新增代码必须能追溯到 `delta-spec.md` 中的业务规则或 `delta-design.md` 中的设计项。
-3. 不为未确认的未来需求预留复杂抽象。
+## 2. Naming
 
-## 2. 命名规范
+| Target | Rule | Example |
+|--------|------|---------|
+| File | [rule] | `[example]` |
+| Class or type | [rule] | `[ExampleService]` |
+| Function or method | [rule] | `[createExample]` |
+| Configuration | [rule] | `[EXAMPLE_TIMEOUT]` |
 
-| 类型 | 规则 | 示例 |
-|------|------|------|
-| 文件 | [命名规则] | `[example]` |
-| 类/结构体 | [命名规则] | `[ExampleService]` |
-| 函数/方法 | [命名规则] | `[createExample]` |
-| 配置项 | [命名规则] | `[EXAMPLE_TIMEOUT]` |
+## 3. Layering and Dependencies
 
-## 3. 分层与依赖
+1. [Allowed dependency direction]
+2. [Forbidden cross-layer calls]
+3. [Shared module reuse rules]
 
-1. [描述允许的依赖方向]
-2. [描述禁止跨层调用的情况]
-3. [描述公共模块复用规则]
+## 4. Error Handling
 
-## 4. 错误处理
+1. [Error code or exception rules]
+2. [Required log fields]
+3. [Retry, fallback, and idempotency rules]
 
-1. [错误码或异常规范]
-2. [日志字段要求]
-3. [重试、降级、幂等要求]
+## 5. Pre-Commit Checklist
 
-## 5. 提交前检查
-
-- [ ] 代码符合本文件约束
-- [ ] 关键逻辑有测试覆盖
-- [ ] 未引入与 `SPEC.md` / `spec.md` 冲突的行为
-- [ ] 配置、日志、监控变更已同步到相关文档
-
-
-
+- [ ] Code follows this file.
+- [ ] Critical logic has tests.
+- [ ] Behavior does not conflict with spec.md.
+- [ ] Configuration, logging, or monitoring changes are reflected in docs.

@@ -5,7 +5,8 @@ const VALUE_OPTIONS = new Set([
   "--runner",
   "--mode",
   "--model",
-  "--default-runner"
+  "--default-runner",
+  "--lang"
 ]);
 
 const BOOLEAN_OPTIONS = new Set([
@@ -25,7 +26,7 @@ export function parseArgs(argv) {
     if (VALUE_OPTIONS.has(token)) {
       const value = argv[index + 1];
       if (value === undefined || value.startsWith("--")) {
-        throw new Error(`缺少选项值：${token}`);
+        throw new Error(`Missing option value: ${token}`);
       }
       const key = token.slice(2).replaceAll("-", "_");
       options[key] = value;
@@ -34,7 +35,7 @@ export function parseArgs(argv) {
       const key = token.replace(/^-+/, "").replaceAll("-", "_");
       options[key] = true;
     } else if (token.startsWith("--")) {
-      throw new Error(`未知选项：${token}`);
+      throw new Error(`Unknown option: ${token}`);
     } else {
       positionals.push(token);
     }

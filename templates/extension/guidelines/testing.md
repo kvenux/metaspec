@@ -1,33 +1,32 @@
+# Testing Guidelines
 
-# 测试规范
+> Use this template to record project-level testing constraints so each business rule can be verified.
 
-> 本模板用于记录项目级测试约束，确保每条业务规则能被验证。
+## 1. Test Layers
 
-## 1. 测试分层
+| Type | Scope | Command |
+|------|-------|---------|
+| Unit | [domain logic, utilities, service methods] | `[command]` |
+| Integration | [API, database, messages, external adapters] | `[command]` |
+| End-to-end | [critical user flows] | `[command]` |
 
-| 类型 | 适用范围 | 命令 |
-|------|----------|------|
-| 单元测试 | [领域逻辑、工具函数、服务方法] | `[command]` |
-| 集成测试 | [接口、数据库、消息、外部依赖适配] | `[command]` |
-| 端到端测试 | [关键用户路径] | `[command]` |
+## 2. Coverage Expectations
 
-## 2. 覆盖要求
+1. Every changed business rule in delta-spec.md should have at least one positive or negative test.
+2. Error scenarios, boundary conditions, and permission constraints need tests or explicit manual checks.
+3. DFX constraints should include feasible performance, security, or reliability verification.
 
-1. `delta-spec.md` 中每条业务规则至少应有一个正向或负向测试。
-2. 异常场景、边界条件和权限约束必须有测试或明确的人工验证方式。
-3. DFX 约束应在可行范围内提供性能、安全、可靠性验证说明。
+## 3. Naming
 
-## 3. 命名规范
+| Target | Rule | Example |
+|--------|------|---------|
+| Test file | [rule] | `[feature].test.[ext]` |
+| Test case | Describe scenario and expected behavior | `rejects invalid user role` |
+| Test data | [rule] | `[feature]-fixtures.[ext]` |
 
-| 对象 | 规则 | 示例 |
-|------|------|------|
-| 测试文件 | [命名规则] | `[feature].test.[ext]` |
-| 测试用例 | 应描述场景和预期行为 | `rejects invalid user role` |
-| 测试数据 | [命名规则] | `[feature]-fixtures.[ext]` |
+## 4. Pre-Commit Checklist
 
-## 4. 提交前检查
-
-- [ ] 本地测试命令已运行
-- [ ] 新增/修改业务规则有对应测试
-- [ ] 失败路径和边界条件已覆盖
-- [ ] 测试数据不包含敏感信息
+- [ ] Local test commands were run.
+- [ ] New or changed business rules have tests.
+- [ ] Failure paths and boundaries are covered.
+- [ ] Test data does not contain sensitive information.

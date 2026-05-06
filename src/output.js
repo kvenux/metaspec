@@ -1,3 +1,5 @@
+import { isZh } from "./i18n.js";
+
 export function printResult(result, options = {}) {
   if (typeof result === "string") {
     process.stdout.write(`${result}\n`);
@@ -7,9 +9,9 @@ export function printResult(result, options = {}) {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     return;
   }
-  if (result.findings) return printFindings(result.findings, result);
-  if (result.ok === false) return printError(result);
-  if (result.message) process.stdout.write(`${status("ok")} ${style("完成", "success")} ${result.message}\n`);
+  if (result.findings) return printFindings(result.findings, result, options);
+  if (result.ok === false) return printError(result, options);
+  if (result.message) process.stdout.write(`${status("ok")} ${style(isZh(options) ? "完成" : "Done", "success")} ${result.message}\n`);
   if (result.summary) printSummary(result.summary);
   if (Array.isArray(result.sections)) {
     for (const section of result.sections) printSection(section.title, section.items);
@@ -17,7 +19,7 @@ export function printResult(result, options = {}) {
     for (const item of result.items) process.stdout.write(`${item}\n`);
   }
   if (Array.isArray(result.next) && result.next.length) {
-    printSection("下一步", result.next.map((item, index) => `${index + 1}. ${item}`));
+    printSection(isZh(options) ? "下一步" : "Next", result.next.map((item, index) => `${index + 1}. ${item}`));
   }
 }
 
@@ -55,12 +57,12 @@ export function style(text, kind) {
   return `\u001b[${codes.join(";")}m${text}\u001b[0m`;
 }
 
-function printError(result) {
-  process.stderr.write(`${status("fail")} ${style("失败", "error")} ${result.message || "命令执行失败。"}\n`);
+function printError(result, options = {}) {
+  process.stderr.write(`${status("fail")} ${style(isZh(options) ? "失败" : "Failed", "error")} ${result.message || (isZh(options) ? "命令执行失败。" : "Command failed.")}\n`);
   if (result.code) process.stderr.write(`  code: ${result.code}\n`);
   if (result.runner) process.stderr.write(`  runner: ${result.runner}\n`);
   if (Array.isArray(result.next) && result.next.length) {
-    printSection("建议", result.next.map((item, index) => `${index + 1}. ${item}`), process.stderr);
+    printSection(isZh(options) ? "建议" : "Suggestions", result.next.map((item, index) => `${index + 1}. ${item}`), process.stderr);
   }
 }
 
@@ -79,19 +81,19 @@ function printSection(title, items = [], stream = process.stdout) {
   for (const item of items) stream.write(`  ${item}\n`);
 }
 
-function printFindings(findings, result = {}) {
+function printFindings(findings, result = {}, options = {}) {
   if (!findings.length) {
-    process.stdout.write(`${status("ok")} ${style("完成", "success")} 未发现问题。\n`);
+    process.stdout.write(`${status("ok")} ${style(isZh(options) ? "完成" : "Done", "success")} ${isZh(options) ? "未发现问题。" : "No findings."}\n`);
     return;
   }
   const stream = result.ok === false ? process.stderr : process.stdout;
-  if (result.ok === false && result.message) stream.write(`${status("fail")} ${style("失败", "error")} ${result.message}\n`);
-  stream.write(`${style("━━ 发现以下问题", "section")}\n`);
+  if (result.ok === false && result.message) stream.write(`${status("fail")} ${style(isZh(options) ? "失败" : "Failed", "error")} ${result.message}\n`);
+  stream.write(`${style(isZh(options) ? "━━ 发现以下问题" : "━━ Findings", "section")}\n`);
   for (const finding of findings) {
     stream.write(`[${finding.level}] ${finding.code} ${finding.path} - ${finding.message}\n`);
   }
   if (Array.isArray(result.next) && result.next.length) {
-    printSection("建议", result.next.map((item, index) => `${index + 1}. ${item}`), stream);
+    printSection(isZh(options) ? "建议" : "Suggestions", result.next.map((item, index) => `${index + 1}. ${item}`), stream);
   }
 }
 

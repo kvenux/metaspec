@@ -1,133 +1,106 @@
+# [REQ ID] Spec Delta
 
-# [REQ编号] Spec 增量设计
+> This document describes incremental changes to the full spec.md. Use ADDED, MODIFIED, and REMOVED markers.
 
-> 本文档描述对 SPEC.md 的增量变更，使用 ADDED/MODIFIED/REMOVED 标记。
-> 完成后需合并到全量 SPEC.md 中。
+## 0. Clarification Record
 
-## 0. 用户澄清记录
+### 0.1 Confirmed Rule Decisions
 
-### 0.1 已确认规则口径
+- [Rule decision from proposal.md, user confirmation, or existing spec.md]
 
-- [规则口径1：来源于 proposal.md、用户确认或现有 SPEC.md]
-- [规则口径2：来源于 proposal.md、用户确认或现有 SPEC.md]
+### 0.2 Open Questions
 
-### 0.2 待确认问题
+- [ ] [Question that affects business rules or acceptance criteria]
 
-- [ ] [问题1：影响业务规则或验收条件]
-- [ ] [问题2：如无待确认问题可写“无”]
+### 0.3 Decision Ledger
 
-### 0.3 决策台账
+| Decision | Source | Status | Impact on Rules or Acceptance |
+|----------|--------|--------|-------------------------------|
+| [Key decision] | [proposal/user/spec/code fact/agent inference] | [confirmed/needs-confirmation] | [impact] |
 
-| 决策 | 来源 | 状态 | 对业务规则/验收的影响 |
-|------|------|------|------------------------|
-| [关键决策1] | [proposal.md/用户确认/现有SPEC.md/代码事实/agent推导] | [confirmed/needs-confirmation] | [影响] |
-| [关键决策2] | [来源] | [状态] | [影响] |
-
-> 规则：存在会改变业务规则、验收条件、异常路径、数据约束或非目标边界的未确认决策时，不应继续生成后续阶段。
+> Do not continue if an unconfirmed decision changes business rules, acceptance criteria, error paths, data constraints, or out-of-scope boundaries.
 
 ## ADDED Requirements
 
-> 新增的业务规则和能力
+### 5.X [Capability Name]
 
-### 5.X [新功能模块名称]
+#### 5.X.1 Business Rules
 
-#### 5.X.1 业务规则
+1. **[Rule name]**: [Precise rule using must/must not/should.]
+   - **Acceptance**: [trigger] -> [expected behavior]
+   - **Acceptance**: [trigger] -> [expected behavior]
 
-1. **规则名称**：[详细描述，使用"必须/禁止/应当"]
-   - **验收条件**：[触发场景] → [预期行为]
-   - **验收条件**：[触发场景] → [预期行为]
-
-2. **规则名称**：[详细描述]
-   - **验收条件**：[触发场景] → [预期行为]
-
-3. **禁止项**：[详细描述]
-   - **验收条件**：[触发场景] → [预期行为]
-
-#### 5.X.2 交互流程
+#### 5.X.2 Interaction Flow
 
 ```plantuml
 @startuml
 !theme plain
-actor 角色A
-participant 本组件
-participant 外部系统X
+actor User
+participant System
+participant External
 
-角色A -> 本组件: 发起请求
-activate 本组件
-本组件 -> 外部系统X: 调用
-外部系统X --> 本组件: 返回
-本组件 --> 角色A: 响应
-deactivate 本组件
+User -> System: Submit request
+activate System
+System -> External: Call dependency
+External --> System: Return result
+System --> User: Return response
+deactivate System
 @enduml
 ```
 
-#### 5.X.3 异常场景
+#### 5.X.3 Error Scenarios
 
-1. **场景：[异常场景名称]**
-   - **触发条件**：[描述]
-   - **系统行为**：[描述]
-   - **用户感知**：[错误码或提示]
-
+1. **Scenario: [error name]**
+   - **Trigger**: [condition]
+   - **System behavior**: [behavior]
+   - **User-visible result**: [message, status, or error code]
 
 ## MODIFIED Requirements
 
-> 修改的现有业务规则（需写出完整修改后的内容）
+### 5.Y [Existing Capability]
 
-### 5.Y [现有功能模块名称]
-
-#### 5.Y.1 业务规则
-
-1. **规则名称**：[修改后的完整描述]  ← (原为: [原描述])
-   - **验收条件**：[触发场景] → [新预期行为]
-
+1. **[Rule name]**: [Full updated rule.]
+   - **Previously**: [old rule]
+   - **Acceptance**: [trigger] -> [new expected behavior]
 
 ## REMOVED Requirements
 
-> 删除的业务规则
+### 5.Z [Removed Capability]
 
-### 5.Z [要删除的功能模块名称]
+- **Reason**: [why this is removed]
+- **Migration path**: [how users adapt, if applicable]
 
-**删除原因**：[说明为什么删除此功能]
-
-**迁移路径**：[如适用，说明用户如何适应此删除]
-
-
-## 数据约束变更
+## Data Constraint Changes
 
 ### ADDED
 
-#### 6.X [新领域对象]
+#### 6.X [Domain Object]
 
-1. **字段1**：[约束描述]
-2. **字段2**：[约束描述]
+1. **[Field or invariant]**: [constraint]
 
 ### MODIFIED
 
-#### 6.Y [现有领域对象]
+#### 6.Y [Existing Domain Object]
 
-1. **字段1**：[修改后约束]  ← (原为: [原约束])
+1. **[Field or invariant]**: [new constraint]
+   - **Previously**: [old constraint]
 
-
-## 术语变更
+## Terminology Changes
 
 ### ADDED
 
-**新术语名称**
-: [术语定义]
+**[Term]**
+: [Definition.]
 
 ### MODIFIED
 
-**现有术语名称**
-: [修改后定义]  ← (原为: [原定义])
+**[Existing term]**
+: [Updated definition.]
 
+## Merge Checklist
 
-## 合并检查清单
-
-- [ ] ADDED 内容已添加到对应章节
-- [ ] MODIFIED 内容已替换原有内容
-- [ ] REMOVED 内容已从 SPEC.md 中删除
-- [ ] 章节编号已重新整理
-- [ ] PlantUML 图表可正常渲染
-
-
-
+- [ ] ADDED requirements are merged into the right full spec section.
+- [ ] MODIFIED requirements replace the old text.
+- [ ] REMOVED requirements are deleted from the full spec.
+- [ ] Section numbers are normalized.
+- [ ] Diagrams render.
