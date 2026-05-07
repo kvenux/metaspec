@@ -22,7 +22,7 @@ The main command must:
 6. Ask the user to confirm the artifact.
 7. On user confirmation, call `metaspec accept --json`.
 8. If `accept` returns `nextStage`, immediately enter the next stage and start clarification or generation approval.
-9. If `metaspec go --json` returns `nextAction: "implementation"`, read `tasks.md`, `delta-design.md`, and `validation.md`, then perform implementation and tests before asking about `metaspec done`.
+9. If `metaspec go --json` returns `nextAction: "implementation"`, read `tasks.md`, `delta-spec.md`, `delta-design.md`, and `validation.md`, then perform implementation and tests. After implementation is complete, perform done finalization by refreshing full `spec.md` / `design.md` before asking about `metaspec done`.
 
 ## Stage Commands
 
@@ -44,6 +44,7 @@ The main command must:
 - A user's "确认/下一步" for one stage does not authorize generating the next stage artifact.
 - A user's confirmation of `validation.md` only authorizes implementation work; it does not authorize archive.
 - Missing full documents must not be faked. Use `metaspec generate && metaspec apply`, import real documents, or mark the risk according to the stage rules.
+- Do not run `metaspec generate` to evolve an accepted change. `generate/apply` is for baseline recovery; accepted changes refresh full `spec.md` / `design.md` through the coding agent during done finalization.
 
 ## Missing Full Document Policy
 

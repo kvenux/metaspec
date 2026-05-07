@@ -16,6 +16,8 @@ The installed command teaches the agent to:
 4. Generate exactly one stage artifact at a time.
 5. Ask for user confirmation before advancing stages.
 6. Treat validation as permission to implement, not permission to archive.
+7. Treat `metaspec generate && metaspec apply` as baseline recovery, not accepted-change evolution.
+8. After implementation and verification, perform done finalization by updating `metaspec/specs/spec.md` and `metaspec/specs/design.md` before calling `metaspec done`.
 
 ## Language
 

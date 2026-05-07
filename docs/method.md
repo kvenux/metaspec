@@ -13,6 +13,7 @@ recover full spec/design
 -> validate consistency
 -> implement
 -> verify
+-> done finalization
 -> archive
 ```
 
@@ -22,7 +23,7 @@ recover full spec/design
 2. A delta is meaningful only when it can be compared with the current full behavior.
 3. Clarification must happen before documents are accepted, not after code is written.
 4. Validation is a document-chain gate before implementation; it is not the end of the change.
-5. `metaspec done` belongs after implementation and verification pass.
+5. `metaspec done` belongs after implementation, verification, and done finalization pass.
 
 ## What Makes It Different
 

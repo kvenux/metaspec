@@ -125,6 +125,12 @@ function validateTasks(file, change, findings, options) {
   if (!/测试|验证|test|validation/i.test(content)) {
     findings.push(finding("warn", "CS301", `metaspec/changes/${change}/tasks.md`, tr(options, "tasks.md does not reference or include verification tasks.", "tasks.md 未引用或包含验证任务。")));
   }
+  if (!/delta-spec\.md[\s\S]*metaspec\/specs\/spec\.md|metaspec\/specs\/spec\.md[\s\S]*delta-spec\.md/i.test(content)) {
+    findings.push(finding("warn", "CS302", `metaspec/changes/${change}/tasks.md`, tr(options, "tasks.md does not include done-stage refresh of metaspec/specs/spec.md from delta-spec.md.", "tasks.md 未包含 done 阶段根据 delta-spec.md 刷新 metaspec/specs/spec.md 的任务。")));
+  }
+  if (!/delta-design\.md[\s\S]*metaspec\/specs\/design\.md|metaspec\/specs\/design\.md[\s\S]*delta-design\.md/i.test(content)) {
+    findings.push(finding("warn", "CS303", `metaspec/changes/${change}/tasks.md`, tr(options, "tasks.md does not include done-stage refresh of metaspec/specs/design.md from delta-design.md.", "tasks.md 未包含 done 阶段根据 delta-design.md 刷新 metaspec/specs/design.md 的任务。")));
+  }
 }
 
 function validateValidation(file, change, findings, options) {

@@ -128,7 +128,7 @@ const stageDefinitions = {
     objective: "Break the design into executable and verifiable development tasks.",
     inputs: ["full spec.md", "full design.md", "delta-spec.md", "delta-design.md", "existing tasks.md if present"],
     nextName: "Consistency validation",
-    artifactRule: "Tasks must be executable by a developer or coding agent, split by module/file/responsibility boundary, and include tests and documentation work.",
+    artifactRule: "Tasks must be executable by a developer or coding agent, split by module/file/responsibility boundary, and include tests plus explicit done-finalization tasks: refresh metaspec/specs/spec.md from delta-spec.md and refresh metaspec/specs/design.md from delta-design.md. Do not use metaspec generate/apply for accepted-change evolution.",
     contextRule: "If full spec.md or design.md is missing, block task breakdown or mark it as high risk. Do not invent context.",
     clarificationFocus: "task boundaries, file scope, dependency order, parallelism, test strategy, and acceptance method",
     generationFocus: "the task scope to break down",
@@ -166,14 +166,14 @@ function mainFlowBody() {
 
 Workflow:
 1. First call \`metaspec go --json\` and read change, stage, artifact path, nextAction, stage.inputs, and stage.allowedWritePath.
-2. If nextAction is \`implementation\`, show the implementation card, read \`tasks.md\`, \`delta-design.md\`, and \`validation.md\`, then implement and test. Do not generate new stage documents and do not call \`metaspec done\`.
+2. If nextAction is \`implementation\`, show the implementation card, read \`tasks.md\`, \`delta-spec.md\`, \`delta-design.md\`, and \`validation.md\`, then implement and test. Do not generate new stage documents and do not call \`metaspec done\` until done finalization refreshes the full baseline docs.
 3. Render stage status from the JSON. Show the full MetaSpec SDD panel on first entry, stage switches, user status questions, or CLI errors; use a compact status bar during normal conversation.
 4. Work according to the current stage: requirement clarification, spec delta, design delta, task breakdown, or consistency validation.
 5. Before writing an artifact for a newly entered stage, complete at least one user-facing clarification or generation-approval turn. If information is insufficient, ask questions. If information is sufficient, list the proposed output points and ask the user to reply "generate".
 6. After writing a stage artifact, ask the user to confirm it. Keep editing the current stage until the user confirms.
 7. When the user explicitly replies "confirm", "next", or equivalent, immediately call \`metaspec accept --json\`; do not ask the user to run the command in a terminal.
 8. If \`metaspec accept --json\` returns nextStage, immediately enter that stage: show a stage-switch card, read context, then ask clarification questions or request generation approval.
-9. If all document stages are confirmed, do not rush to \`metaspec done --json\`. First implement according to \`tasks.md\` and run verification. Only after implementation and verification pass should you ask whether to archive and call \`metaspec done --json\`.
+9. If all document stages are confirmed, do not rush to \`metaspec done --json\`. First implement according to \`tasks.md\` and run verification. When implementation is complete, perform done finalization: refresh \`metaspec/specs/spec.md\` from \`delta-spec.md\` and refresh \`metaspec/specs/design.md\` from \`delta-design.md\`. Only after implementation, done finalization, and verification pass should you ask whether to archive and call \`metaspec done --json\`.
 
 Progression rules:
 - "confirm/next" for a stage only confirms the current artifact and advances the document workflow. Confirming validation means the document chain may enter implementation; it does not mean implementation is complete or ready to archive.
@@ -323,10 +323,12 @@ MetaSpec SDD · {change}
 
 Next I will:
 1. Implement tasks from tasks.md
-2. Modify necessary code, tests, and docs
+2. Modify necessary code and tests
 3. Run verification commands and report results
+4. Perform done finalization by refreshing metaspec/specs/spec.md from delta-spec.md
+5. Refresh metaspec/specs/design.md from delta-design.md
 
-Only after implementation and verification pass will I ask whether to archive and call metaspec done.
+Only after implementation, done finalization, and verification pass will I ask whether to archive and call metaspec done.
 \`\`\`
 
 Clarification question card:

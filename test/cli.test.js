@@ -290,7 +290,11 @@ test("status, go, accept, and archive follow the stage model", () => {
   assert.match(go.message, /implementation may start/);
   assert.ok(go.next.some((item) => item.includes("tasks.md")));
 
-  const archived = json(run(["--path", root, "archive", "--json"]));
+  const blockedArchive = run(["--path", root, "archive", "--json"]);
+  assert.equal(blockedArchive.status, 1);
+  assert.equal(JSON.parse(blockedArchive.stdout).code, "FULL_DOCS_NOT_UPDATED");
+
+  const archived = json(run(["--path", root, "archive", "--force", "--json"]));
   assert.match(archived.archive, /metaspec\/changes\/archives\/\d{4}-\d{2}-\d{2}-REQ20260428-user-login/);
 });
 
@@ -321,6 +325,7 @@ test("integration install supports Claude Code and Codex repository commands", (
   assert.match(mainCommand, /metaspec generate && metaspec apply/);
   assert.match(mainCommand, /Clarification guardrails/);
   assert.match(mainCommand, /vague language/);
+  assert.match(mainCommand, /done finalization/);
   const proposalCommand = fs.readFileSync(path.join(root, ".claude/commands/metaspec-proposal.md"), "utf8");
   assert.match(proposalCommand, /generate/);
   assert.match(proposalCommand, /stage.allowedWritePath/);
@@ -345,6 +350,7 @@ test("integration install supports Claude Code and Codex repository commands", (
   const tasksSkill = fs.readFileSync(path.join(root, ".agents/skills/metaspec-tasks/SKILL.md"), "utf8");
   assert.match(tasksSkill, /Ask at most 3 clarification questions per turn/);
   assert.match(tasksSkill, /task boundaries, file scope/);
+  assert.match(tasksSkill, /Do not use metaspec generate\/apply for accepted-change evolution/);
   const validationSkill = fs.readFileSync(path.join(root, ".agents/skills/metaspec-validation/SKILL.md"), "utf8");
   assert.match(validationSkill, /whether implementation may start/);
   assert.match(validationSkill, /Generation approval|generation approval/);
@@ -424,6 +430,116 @@ test("validate reports lightweight proposal quality warnings", () => {
   payload = json(run(["--path", root, "validate", change, "--json"]));
   const proposalCodes = payload.findings.map((finding) => finding.code).filter((code) => /^CS11/.test(code));
   assert.deepEqual(proposalCodes, []);
+});
+
+test("done requires full spec and design to be refreshed after validation", () => {
+  const root = tempProject();
+  const change = "REQ20260428-owner-phone-search";
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "metaspec/specs/spec.md", "# Existing SPEC\n\n## 1. Component Purpose\nExisting.\n");
+  writeProjectFile(root, "metaspec/specs/design.md", "# Existing DESIGN\n\n## 1. Design Overview\nExisting.\n");
+  json(run(["--path", root, "start", change, "--json"]));
+
+  const changeDir = path.join(root, "metaspec/changes", change);
+  const files = [
+    [
+      "proposal.md",
+      [
+        "# Proposal",
+        "## 0. User Clarification Log",
+        "### 0.1 Confirmed Decisions",
+        "- Exact phone lookup.",
+        "### 0.2 Open Questions",
+        "- None",
+        "### 0.3 Decision Ledger",
+        "| Decision | Source | Status | Impact |",
+        "|---|---|---|---|",
+        "| Phone lookup | user | confirmed | scope |",
+        "## 1. Requested Change vs Real Need",
+        "Real need: find owners when last names are uncertain.",
+        "## 5. Scope Boundary",
+        "- Find Owners only.",
+        "## 6. Non-Goals",
+        "- No fuzzy search.",
+        "## 8. Assumptions and Open Questions",
+        "- None"
+      ].join("\n")
+    ],
+    ["delta-spec.md", "# Delta Spec\n\n## ADDED Requirements\n- Phone lookup.\n## MODIFIED Requirements\nNone\n## REMOVED Requirements\nNone\n"],
+    ["delta-design.md", "# Delta Design\n\nUse existing owner repository pattern.\n"],
+    [
+      "tasks.md",
+      [
+        "# Tasks",
+        "- Implement phone lookup.",
+        "- Add tests and validation.",
+        "- Done finalization refreshes metaspec/specs/spec.md from delta-spec.md.",
+        "- Done finalization refreshes metaspec/specs/design.md from delta-design.md."
+      ].join("\n")
+    ],
+    ["validation.md", "# Validation\n\nImplementation may start.\n"]
+  ];
+
+  for (const [file, body] of files) {
+    fs.writeFileSync(path.join(changeDir, file), body, "utf8");
+    json(run(["--path", root, "accept", "--json"]));
+  }
+
+  let result = run(["--path", root, "done", change, "--json"]);
+  assert.equal(result.status, 1);
+  let payload = JSON.parse(result.stdout);
+  assert.equal(payload.code, "FULL_DOCS_NOT_UPDATED");
+  assert.deepEqual(
+    payload.notUpdated.map((item) => item.path),
+    ["metaspec/specs/spec.md", "metaspec/specs/design.md"]
+  );
+  assert.deepEqual(payload.notMerged, payload.notUpdated);
+
+  result = run(["--path", root, "done", change, "--force", "--json"]);
+  assert.equal(result.status, 1);
+  payload = JSON.parse(result.stdout);
+  assert.equal(payload.code, "DONE_FORCE_NOT_SUPPORTED");
+  assert.ok(fs.existsSync(changeDir));
+
+  fs.appendFileSync(path.join(root, "metaspec/specs/spec.md"), "\n## Phone Lookup\nMerged from delta-spec.\n", "utf8");
+  fs.appendFileSync(path.join(root, "metaspec/specs/design.md"), "\n## Phone Lookup Design\nMerged from delta-design.\n", "utf8");
+
+  result = run(["--path", root, "done", change, "--json"]);
+  assert.equal(result.status, 0, result.stderr);
+  payload = JSON.parse(result.stdout);
+  assert.ok(payload.ok);
+  assert.match(payload.archive, /metaspec\/changes\/archives\/\d{4}-\d{2}-\d{2}-REQ20260428-owner-phone-search/);
+});
+
+test("archive enforces done finalization unless force is used", () => {
+  const root = tempProject();
+  const change = "REQ20260428-archive-gate";
+  json(run(["init", root, "--integration", "none", "--json"]));
+  writeProjectFile(root, "metaspec/specs/spec.md", "# Existing SPEC\n\n## 1. Component Purpose\nExisting.\n");
+  writeProjectFile(root, "metaspec/specs/design.md", "# Existing DESIGN\n\n## 1. Design Overview\nExisting.\n");
+  json(run(["--path", root, "start", change, "--json"]));
+
+  const changeDir = path.join(root, "metaspec/changes", change);
+  for (const [file, body] of [
+    ["proposal.md", "# Proposal\n\n## 1. Requested Change vs Real Need\nReal need.\n## 5. Scope Boundary\nScope.\n## 6. Non-Goals\nNone.\n## 7. Confirmed Decisions\nConfirmed.\n## 8. Assumptions and Open Questions\nNone.\n## 0. User Clarification Log\n### 0.3 Decision Ledger\nLedger.\n"],
+    ["delta-spec.md", "# Delta Spec\n\n## ADDED Requirements\n- Rule.\n## MODIFIED Requirements\nNone\n## REMOVED Requirements\nNone\n"],
+    ["delta-design.md", "# Delta Design\n\nDesign.\n"],
+    ["tasks.md", "# Tasks\n\n- Add validation tests.\n- Done finalization refreshes metaspec/specs/spec.md from delta-spec.md.\n- Done finalization refreshes metaspec/specs/design.md from delta-design.md.\n"],
+    ["validation.md", "# Validation\n\nImplementation may start.\n"]
+  ]) {
+    fs.writeFileSync(path.join(changeDir, file), body, "utf8");
+    json(run(["--path", root, "accept", "--json"]));
+  }
+
+  let result = run(["--path", root, "archive", change, "--json"]);
+  assert.equal(result.status, 1);
+  assert.equal(JSON.parse(result.stdout).code, "FULL_DOCS_NOT_UPDATED");
+
+  result = run(["--path", root, "archive", change, "--force", "--json"]);
+  assert.equal(result.status, 0, result.stderr);
+  const payload = JSON.parse(result.stdout);
+  assert.ok(payload.ok);
+  assert.match(payload.archive, /metaspec\/changes\/archives\/\d{4}-\d{2}-\d{2}-REQ20260428-archive-gate/);
 });
 
 test("show reports a clear message when no generated run exists", () => {

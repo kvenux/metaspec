@@ -523,7 +523,7 @@ MetaSpec 是一种规格驱动开发方法，目标是把需求、规格、设�
 
 1. **规格是业务真理源**：业务规则以全量 `SPEC.md` 或 `metaspec/specs/spec.md` 为准。
 2. **设计承接规格**：实现方案以全量 `DESIGN.md` 或 `metaspec/specs/design.md` 为准。
-3. **增量驱动变更**：每个需求变更先写在 `changes/{REQ-ID}/`，通过阶段门后再合并到全量文档。
+3. **增量驱动变更**：每个需求变更先写在 `changes/{REQ-ID}/`，通过阶段门和实现验证后，在 done finalization 中刷新全量文档。
 4. **文档服务实现**：`tasks.md` 必须能被开发者或 AI Agent 直接执行。
 5. **实现前验证**：`validation.md` 明确文档链是否可进入实现。
 
@@ -539,7 +539,7 @@ metaspec 不把工具状态、平台脚本或 JSON 数据文件作为方法论�
 2. 全量文档维护。
 3. 增量变更目录。
 4. `proposal -> delta-spec -> delta-design -> tasks -> validation` 文档链。
-5. 变更完成后将增量合并回全量文档。
+5. 变更完成后在 done finalization 中刷新全量文档。
 
 ### 2.2 Industrial Extensions
 
@@ -812,14 +812,15 @@ metaspec/changes/{REQ-ID}/
 2. 若代码发现反向事实，应先修正文档链，再改代码。
 3. 测试覆盖至少对应新增或修改的业务规则。
 
-### 5.8 阶段 7：合并归档
+### 5.8 阶段 7：Done Finalization 与归档
 
 活动：
 
-1. 将 `delta-spec.md` 合并到全量 Spec。
-2. 将 `delta-design.md` 合并到全量 Design。
-3. 将变更目录归档到 `archives/{date}-{REQ-ID}`。
-4. 将代码和文档一起提交。
+1. 根据最终实现和 `delta-spec.md` 更新全量 Spec。
+2. 根据最终实现和 `delta-design.md` 更新全量 Design。
+3. 确认 full `spec.md` / `design.md` 在 validation 后已有更新证据。
+4. 将变更目录归档到 `archives/{date}-{REQ-ID}`。
+5. 将代码和文档一起提交。
 
 当前 CLI 归档路径为：
 
@@ -827,7 +828,7 @@ metaspec/changes/{REQ-ID}/
 metaspec/changes/archives/{YYYY-MM-DD}-{REQ-ID}/
 ```
 
-归档后仍需确保全量文档已经成为最新权威版本。
+归档前必须确保 done finalization 已经让全量文档成为最新权威版本；默认 `archive` / `done` 会检查 full docs 在 validation 后是否更新。
 
 ### 5.9 阶段 8：代码与规格验证
 
@@ -1077,11 +1078,12 @@ mkdir -p changes/REQ20240101-feature-name
 
 ---
 
-### 阶段7: 合并归档
+### 阶段7: Done Finalization 与归档
 
 **活动**：
-- `delta-spec.md` 合并到 `SPEC.md`（全量刷新）
-- `delta-design.md` 合并到 `DESIGN.md`（全量刷新）
+- 根据最终实现和 `delta-spec.md` 更新 `SPEC.md`（全量刷新）
+- 根据最终实现和 `delta-design.md` 更新 `DESIGN.md`（全量刷新）
+- 确认 full `spec.md` / `design.md` 在 validation 后已有更新证据
 - 变更提案归档到 `archive/{date}-{REQ-ID}/`
 - 代码与文档原子化提交
 
@@ -1156,7 +1158,7 @@ mv changes/REQ20240101-feature-name archive/20240115-REQ20240101-feature-name
 | 4. 任务拆解 | `tasks.md` | 技术负责人/开发工程师 | 可执行任务 |
 | 5. 一致性验证 | `validation.md` | 产品经理 / 技术负责人 / 测试工程师 | 文档链覆盖与冲突检查 |
 | 6. 开发实现 | 代码 | 开发/AI Agent | 实现 |
-| 7. 合并归档 | SPEC.md + DESIGN.md 刷新 | Committer | 全量刷新 |
+| 7. Done Finalization 与归档 | SPEC.md + DESIGN.md 刷新 | Committer | 全量刷新和归档 |
 | 8. 代码与规格验证 | 验证报告 | QA | 代码与Spec一致 |
 
 ---
@@ -1504,7 +1506,7 @@ metaspec/changes/{change}/.metaspec-state.json
 | `open_agent_stage` | Agent 应处理当前阶段 |
 | `await_user_accept` | 阶段文档已生成，等待用户确认 |
 | `complete_previous_stage` | 前序阶段未完成 |
-| `implementation` | 文档链已验证，可按 `tasks.md` 执行实现；实现完成并验证通过后才能归档 |
+| `implementation` | 文档链已验证，可按 `tasks.md` 执行实现；实现、验证和 done finalization 完成后才能归档 |
 
 ### 6.6 `metaspec accept [change]`
 
@@ -1570,15 +1572,19 @@ finding 结构：
 
 ### 6.10 `metaspec done [change]`
 
-用途：实现完成并验证通过后，校验并归档已完成变更。
+用途：实现、验证和 done finalization 完成后，校验并归档已完成变更。
 
-`validation.md` 确认后只表示文档链允许进入实现，不表示实现已经完成。Agent 或开发者必须先按 `tasks.md` 完成代码、测试和必要文档更新，并运行约定验证后，才能执行 `done`。
+`validation.md` 确认后只表示文档链允许进入实现，不表示实现已经完成。Agent 或开发者必须先按 `tasks.md` 完成代码、测试。实现和验证完成后，进入 done finalization：根据本次 `delta-spec.md` / `delta-design.md` 刷新全量 `metaspec/specs/spec.md` / `metaspec/specs/design.md`，然后才能执行 `done`。
+
+`metaspec generate && metaspec apply` 只用于从代码库恢复或重建 baseline，不用于已确认变更的常规版本演进。常规演进由 coding agent 在 done finalization 阶段把增量文档刷新进全量文档。
 
 行为：
 
 1. 先执行 `validateProject`。
 2. 存在 error finding 时输出 `VALIDATION_FAILED`，退出码 `1`。
-3. 无 error 时调用归档。
+3. 检查 `validation.md` 确认后，`metaspec/specs/spec.md` 和 `metaspec/specs/design.md` 是否都已在 done finalization 中刷新。
+4. 若缺少 done finalization 更新证据，输出 `FULL_DOCS_NOT_UPDATED`，退出码 `1`。
+5. 无阻断问题时调用归档。
 
 校验失败输出：
 
@@ -1591,11 +1597,32 @@ finding 结构：
 }
 ```
 
+done finalization 未完成时：
+
+```json
+{
+  "ok": false,
+  "code": "FULL_DOCS_NOT_UPDATED",
+  "message": "done finalization 证据不完整。archive/done 前，metaspec/specs/spec.md 和 metaspec/specs/design.md 都必须在 validation 后更新。",
+  "notUpdated": []
+}
+```
+
+`done --force` 不作为旁路；需要手工恢复时显式使用 `archive --force`：
+
+```json
+{
+  "ok": false,
+  "code": "DONE_FORCE_NOT_SUPPORTED",
+  "message": "metaspec done 不支持 --force。仅在明确手工恢复时使用 metaspec archive --force。"
+}
+```
+
 ### 6.11 `metaspec archive [change]`
 
 用途：把活动变更移动到归档目录。
 
-`archive` 是收尾动作，不是实现前验证动作。除非显式使用 `--force`，调用者应确保实现和验证已经完成。
+`archive` 是收尾动作，不是实现前验证动作。默认会检查阶段完成和 done finalization 更新证据。除非显式使用 `--force`，调用者应确保实现、验证和 done finalization 已经完成。
 
 默认规则：
 
@@ -1605,10 +1632,7 @@ finding 结构：
 4. 归档目录名为 `{YYYY-MM-DD}-{change}`。
 5. 目标目录已存在时失败。
 
-输出下一步：
-
-1. 将 `delta-spec.md` 合并到全量 `spec.md`。
-2. 将 `delta-design.md` 合并到全量 `design.md`。
+归档前应已经完成代码实现、测试验证，以及 done finalization 对全量 `spec.md` / `design.md` 的刷新。
 
 ### 6.12 `metaspec integration list`
 
@@ -1705,6 +1729,8 @@ codex -> .agents/skills
 | `CS116` | warn | `proposal.md` 缺少决策账本 |
 | `CS201` | warn | `delta-spec.md` 缺 ADDED / MODIFIED / REMOVED 标题 |
 | `CS301` | warn | `tasks.md` 未引用或包含验证任务 |
+| `CS302` | warn | `tasks.md` 未包含 done 阶段根据 `delta-spec.md` 刷新 `metaspec/specs/spec.md` 的任务 |
+| `CS303` | warn | `tasks.md` 未包含 done 阶段根据 `delta-design.md` 刷新 `metaspec/specs/design.md` 的任务 |
 | `CS401` | warn | `validation.md` 缺少进入实现结论 |
 | `CSD001` | warn | 缺少 `.gitignore` |
 

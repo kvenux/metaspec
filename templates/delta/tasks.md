@@ -27,10 +27,10 @@
 - [ ] [Unit or integration test for negative and boundary paths.]
 - [ ] [Regression test for compatibility or migration behavior.]
 
-## 6. Documentation and Spec Merge
+## 6. Done Finalization
 
-- [ ] Merge delta-spec.md into full spec.md.
-- [ ] Merge delta-design.md into full design.md.
+- [ ] After implementation and verification, refresh metaspec/specs/spec.md from delta-spec.md.
+- [ ] After implementation and verification, refresh metaspec/specs/design.md from delta-design.md.
 - [ ] Keep implementation notes traceable to accepted decisions.
 
 ## 7. Verification
@@ -42,7 +42,7 @@
 ## Dependency Order
 
 ```text
-data/migration -> domain/application -> infrastructure -> interface -> tests -> docs/spec merge -> verification
+data/migration -> domain/application -> infrastructure -> interface -> tests -> verification -> done finalization
 ```
 
 ## Agent Execution Rules
@@ -50,4 +50,5 @@ data/migration -> domain/application -> infrastructure -> interface -> tests -> 
 1. Implement only tasks backed by delta-spec.md or delta-design.md.
 2. Follow the existing project architecture and style.
 3. Add tests for every changed business rule.
-4. Do not run `metaspec done` until implementation and verification pass.
+4. Do not run `metaspec generate` to evolve an accepted change; generate/apply is for baseline recovery.
+5. Do not run `metaspec done` until implementation, verification, and done finalization full spec/design refresh are complete.

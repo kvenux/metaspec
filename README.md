@@ -4,7 +4,7 @@ Recover the system spec first. Change it safely after.
 
 [中文说明](docs/zh-CN/README.md)
 
-MetaSpec is a spec-driven development workflow for existing codebases. It scans a repository, recovers a full `spec.md` and `design.md`, then routes every new requirement through proposal, spec delta, design delta, tasks, validation, implementation, and archive.
+MetaSpec is a spec-driven development workflow for existing codebases. It scans a repository, recovers a full `spec.md` and `design.md`, then routes every new requirement through proposal, spec delta, design delta, tasks, validation, implementation, done finalization, and archive.
 
 Most AI coding workflows start from the next feature request. MetaSpec starts one layer earlier: it rebuilds the current product and technical baseline so future changes have something stable to diff against.
 
@@ -33,7 +33,7 @@ Spec-driven tools usually optimize for one of two cases:
 MetaSpec is different because it is baseline-first:
 
 ```text
-recover full spec/design -> propose change -> delta spec -> delta design -> tasks -> validation -> implementation -> archive
+recover full spec/design -> propose change -> delta spec -> delta design -> tasks -> validation -> implementation -> done finalization -> archive
 ```
 
 The key idea is simple: do not ask an agent to change a system until it can first explain the system.
@@ -41,7 +41,7 @@ The key idea is simple: do not ask an agent to change a system until it can firs
 ## Core Workflow
 
 ```text
-generate -> apply -> start -> go -> accept -> implement -> done
+generate -> apply -> start -> go -> accept -> implement -> done finalization -> done
 ```
 
 Full recovery:
@@ -101,6 +101,8 @@ metaspec/
 ```
 
 `generate` writes candidates into `.metaspec-cli/runs/`. `apply` publishes reviewed candidates into `metaspec/specs/`. Existing full specs are protected unless you pass `--force`.
+
+`generate/apply` is for baseline recovery. Accepted changes evolve the baseline during done finalization: after implementation and verification, the coding agent refreshes `metaspec/specs/spec.md` from `delta-spec.md` and `metaspec/specs/design.md` from `delta-design.md`, then runs `metaspec done`.
 
 ## Agent Integrations
 
@@ -185,7 +187,7 @@ MetaSpec is intentionally strict where agent workflows usually drift:
 - Agents may only write the path returned by `metaspec go --json`.
 - Every stage requires user confirmation before the CLI advances.
 - `validation` checks the document chain before implementation.
-- `done` is only for after implementation and verification, not immediately after validation.
+- `done` is only for after implementation, verification, and done finalization, not immediately after validation.
 - External runners are rejected if they modify source files, authoritative specs, or runtime config outside the current run.
 
 ## CLI Reference
@@ -203,7 +205,7 @@ MetaSpec is intentionally strict where agent workflows usually drift:
 | `metaspec accept [change]` | Confirm the current stage and advance |
 | `metaspec validate [change]` | Validate structure and document consistency |
 | `metaspec doctor` | Diagnose local project issues |
-| `metaspec done [change]` | Archive after implementation and verification |
+| `metaspec done [change]` | Archive after implementation, verification, and done finalization |
 | `metaspec archive [change]` | Archive a completed change |
 | `metaspec integration install all` | Install all supported agent integrations |
 

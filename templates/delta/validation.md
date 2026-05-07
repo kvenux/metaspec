@@ -10,6 +10,7 @@
 | Delta-Spec <-> Delta-Design | [pass/warn/fail] | [count] | [summary] |
 | Delta-Design <-> Tasks | [pass/warn/fail] | [count] | [summary] |
 | Delta <-> Full Documents | [pass/warn/fail] | [count] | [summary] |
+| Planned Done Finalization | [pass/warn/fail] | [count] | [spec.md/design.md refresh tasks] |
 | Decision Clarification Gate | [pass/warn/fail] | [count] | [unconfirmed decisions] |
 | Pre-Implementation Risk Gate | [pass/warn/fail] | [count] | [worktree, tests, migration, compatibility, concurrency] |
 
@@ -80,6 +81,8 @@
 | Boundary conditions | [yes/no/partial] | [notes] |
 | DFX constraints | [yes/no/partial] | [notes] |
 | Tests and verification | [yes/no/partial] | [notes] |
+| Done-stage spec.md refresh task | [yes/no/partial] | [notes] |
+| Done-stage design.md refresh task | [yes/no/partial] | [notes] |
 
 ## 7. Issues and Fixes
 
