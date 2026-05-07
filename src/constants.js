@@ -5,7 +5,7 @@ export const STAGES = [
     file: "proposal.md",
     agentCommand: "/metaspec.proposal",
     name: "Requirement clarification",
-    objective: "Clarify the business goal, scope, constraints, non-goals, and acceptance criteria.",
+    objective: "Discover the real need behind the requested change, then clarify scope boundary, non-goals, confirmed decisions, and acceptance criteria.",
     inputs: ["metaspec/specs/spec.md", "metaspec/specs/design.md", "metaspec/service-context.md"],
     requiresFullSpec: false,
     requiresFullDesign: false

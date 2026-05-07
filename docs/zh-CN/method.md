@@ -239,46 +239,44 @@ REQ20251015-incremental-analysis
 
 ### 7.1 用途
 
-需求澄清文档，回答 Why、What Changes 和 Impact。
+需求澄清文档。它不是变更申请表，而是确认真实需求和边界的 gate：先区分用户提出的表面改动和背后的真实工作流问题，再确认范围、非目标、已确认决策、开放问题和影响预览。
 
 ### 7.2 必备章节
 
-1. `1. 背景与动机`
-2. `2. 变更内容`
-3. `3. 影响分析`
-4. `4. DFX约束（本次新增）`
-5. `5. 里程碑`
+1. `0. User Clarification Log`
+2. `1. Requested Change vs Real Need`
+3. `2. Problem Statement`
+4. `3. User, Actor, and Scenario`
+5. `4. Success Criteria`
+6. `5. Scope Boundary`
+7. `6. Non-Goals`
+8. `7. Confirmed Decisions`
+9. `8. Assumptions and Open Questions`
+10. `9. Impact Preview`
 
 ### 7.3 字段规则
 
-功能清单：
+`Requested Change vs Real Need` 必须区分：
 
-| 字段 | 含义 |
-|------|------|
-| 功能ID | 本 proposal 内唯一功能编号，例如 `F-01` |
-| 功能名称 | 可读业务功能名 |
-| 优先级 | `P0`、`P1`、`P2` |
-| 说明 | 一句话说明 |
+1. 用户原始请求。
+2. 该请求是否只是一个方案或 UI/API 改动。
+3. 背后的痛点、工作流失败、业务目标或运营问题。
+4. 可观察的成功信号。
 
-优先级：
+`Scope Boundary` 必须指出：
 
-1. `P0`：MVP 必须。
-2. `P1`：重要增强。
-3. `P2`：未来优化。
+1. 本次明确包含什么。
+2. 哪些现有行为必须保持兼容。
+3. 新增搜索、筛选、排序、表单输入、API 参数或配置项时，必须确认与既有输入的组合语义、优先级、空值行为、无结果行为、exact/partial、格式归一化和兼容性。
 
-用户故事必须包含：
+`Confirmed Decisions` 和 `Decision Ledger` 必须区分：
 
-1. 角色。
-2. 期望动作。
-3. 业务价值。
-4. 验收标准。
+1. 用户确认。
+2. 现有 spec/design。
+3. 代码事实。
+4. Agent 推断。
 
-影响分析必须指出：
-
-1. 受影响规格章节。
-2. 受影响设计章节。
-3. 是否破坏兼容。
-4. 依赖外部团队或系统。
+任何会影响业务范围、数据模型、迁移、兼容性、权限、可测试性或验收标准的 Agent 推断，进入下一阶段前必须确认。
 
 ## 8. `delta-spec.md` 模板
 
@@ -1699,6 +1697,12 @@ codex -> .agents/skills
 | `CS100` | error | 指定变更目录不存在 |
 | `CS102` | warn | 后序阶段文件存在但前序阶段未完成 |
 | `CS103` | warn | 阶段文件未经过用户确认 |
+| `CS111` | warn | `proposal.md` 缺少 Requested Change vs Real Need |
+| `CS112` | warn | `proposal.md` 缺少范围边界 |
+| `CS113` | warn | `proposal.md` 缺少非目标或不在范围事项 |
+| `CS114` | warn | `proposal.md` 缺少已确认决策 |
+| `CS115` | warn | `proposal.md` 缺少假设或开放问题 |
+| `CS116` | warn | `proposal.md` 缺少决策账本 |
 | `CS201` | warn | `delta-spec.md` 缺 ADDED / MODIFIED / REMOVED 标题 |
 | `CS301` | warn | `tasks.md` 未引用或包含验证任务 |
 | `CS401` | warn | `validation.md` 缺少进入实现结论 |

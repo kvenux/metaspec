@@ -327,11 +327,16 @@ test("integration install supports Claude Code and Codex repository commands", (
   assert.match(proposalCommand, /Clarification question card/);
   assert.match(proposalCommand, /decision ledger/);
   assert.match(proposalCommand, /agent inference|agent-inferred/);
+  assert.match(proposalCommand, /Requested Change vs Real Need/);
+  assert.match(proposalCommand, /search, filter, sort, form input/);
   assert.ok(fs.existsSync(path.join(root, ".claude/skills/metaspec/SKILL.md")));
 
   const codex = json(run(["--path", root, "integration", "install", "codex", "--json"]));
   assert.equal(codex.integration, "codex");
   assert.ok(fs.existsSync(path.join(root, ".agents/skills/metaspec/SKILL.md")));
+  const proposalSkill = fs.readFileSync(path.join(root, ".agents/skills/metaspec-proposal/SKILL.md"), "utf8");
+  assert.match(proposalSkill, /real-need discovery/);
+  assert.match(proposalSkill, /exact vs partial matching/);
   const designSkill = fs.readFileSync(path.join(root, ".agents/skills/metaspec-delta-design/SKILL.md"), "utf8");
   assert.match(designSkill, /generate/);
   assert.match(designSkill, /full design\.md is missing/);
@@ -369,6 +374,56 @@ test("validate reports required structure errors", () => {
   assert.equal(result.status, 1);
   const payload = JSON.parse(result.stdout);
   assert.ok(payload.findings.some((finding) => finding.code === "CS001"));
+});
+
+test("validate reports lightweight proposal quality warnings", () => {
+  const root = tempProject();
+  const change = "REQ20260428-owner-phone-search";
+  json(run(["init", root, "--integration", "none", "--json"]));
+  json(run(["--path", root, "start", change, "--json"]));
+
+  const proposalFile = path.join(root, "metaspec/changes", change, "proposal.md");
+  fs.writeFileSync(proposalFile, "# Proposal\n\nAdd phone search.\n", "utf8");
+
+  let payload = json(run(["--path", root, "validate", change, "--json"]));
+  const warningCodes = payload.findings.map((finding) => finding.code);
+  for (const code of ["CS111", "CS112", "CS113", "CS114", "CS115", "CS116"]) {
+    assert.ok(warningCodes.includes(code), `${code} should be reported`);
+  }
+
+  fs.writeFileSync(
+    proposalFile,
+    [
+      "# Proposal",
+      "",
+      "## 0. User Clarification Log",
+      "### 0.1 Confirmed Decisions",
+      "- Exact telephone matching is confirmed.",
+      "### 0.2 Open Questions",
+      "- None",
+      "### 0.3 Decision Ledger",
+      "| Decision | Source | Status | Impact |",
+      "|----------|--------|--------|--------|",
+      "| Exact telephone matching | user | confirmed | acceptance |",
+      "",
+      "## 1. Requested Change vs Real Need",
+      "The requested change is phone search. The real need is faster owner lookup when last names are uncertain.",
+      "",
+      "## 5. Scope Boundary",
+      "- In scope: Find Owners phone lookup.",
+      "",
+      "## 6. Non-Goals",
+      "- No fuzzy search.",
+      "",
+      "## 8. Assumptions and Open Questions",
+      "- None"
+    ].join("\n"),
+    "utf8"
+  );
+
+  payload = json(run(["--path", root, "validate", change, "--json"]));
+  const proposalCodes = payload.findings.map((finding) => finding.code).filter((code) => /^CS11/.test(code));
+  assert.deepEqual(proposalCodes, []);
 });
 
 test("show reports a clear message when no generated run exists", () => {

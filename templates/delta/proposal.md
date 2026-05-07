@@ -21,76 +21,86 @@
 
 > Any agent inference that affects business scope, data model, migration, compatibility, permissions, testability, or acceptance criteria must be confirmed before the next stage.
 
-## 1. Background and Motivation
+## 1. Requested Change vs Real Need
 
-### 1.1 Current Pain
+### 1.1 Requested Change
 
-[Describe the current limitation or user pain.]
+[Restate what the user asked for in their own terms.]
 
-### 1.2 Business Driver
+### 1.2 Real Need
 
-[Describe the expected value and why the change matters now.]
+[Describe the pain, workflow failure, business goal, or operational issue the requested change is meant to solve.]
 
-## 2. Change Scope
+### 1.3 Solution-vs-Problem Check
 
-### 2.1 Capabilities
+- **Surface request**: [feature/UI/API/configuration/performance request]
+- **Confirmed real problem**: [yes/no; if no, list the blocking question]
 
-| ID | Capability | Priority | Notes |
-|----|------------|----------|-------|
-| F-01 | [Capability name] | P0 | [One sentence summary] |
-| F-02 | [Capability name] | P1 | [One sentence summary] |
+## 2. Problem Statement
 
-Priority: P0 is required for the minimum usable change; P1 is important but not blocking; P2 is deferred.
+[State the problem in observable terms. Avoid vague words such as improve, optimize, flexible, simple, smart, support, or better unless the expected outcome is measurable.]
 
-### 2.2 User Stories
+## 3. User, Actor, and Scenario
 
-**US-01**: As a [role], I want [behavior], so that [value].
+| Item | Description |
+|------|-------------|
+| Primary actor | [Who experiences the problem or uses the capability] |
+| Scenario | [When and why the actor needs the change] |
+| Current behavior | [Relevant existing behavior to preserve or modify] |
+| Desired outcome | [Observable end state] |
 
-Acceptance criteria:
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
+## 4. Success Criteria
 
-### 2.3 Out of Scope
+- [ ] [Criterion 1: observable and testable]
+- [ ] [Criterion 2: observable and testable]
+
+## 5. Scope Boundary
+
+### 5.1 In Scope
+
+- [Required behavior or capability]
+
+### 5.2 Existing Behavior to Preserve
+
+- [Compatibility rule, existing workflow, API behavior, data behavior, or user-facing behavior]
+
+### 5.3 Input and Interaction Semantics
+
+For new search, filter, sort, form input, API parameter, or configuration changes, record:
+
+- **Combination with existing inputs**: [AND / OR / priority / mutual exclusion / not applicable]
+- **Empty value behavior**: [preserve existing behavior or define new behavior]
+- **No-result behavior**: [preserve existing behavior or define new behavior]
+- **Match semantics**: [exact / partial / fuzzy / range / not applicable]
+- **Format normalization**: [case, whitespace, punctuation, locale, units, or not applicable]
+- **Compatibility**: [existing users, links, APIs, data, or workflows that must not change]
+
+## 6. Non-Goals
 
 - [Explicitly excluded capability]
 - [Deferred capability]
 
-## 3. Impact Analysis
+## 7. Confirmed Decisions
 
-### 3.1 Affected Spec Areas
+| Decision | Confirmed By | Notes |
+|----------|--------------|-------|
+| [Decision] | [user/spec/design/code fact] | [Notes] |
 
-| Spec Area | Change Type | Notes |
-|-----------|-------------|-------|
-| Core Capabilities | [added/modified/removed] | [notes] |
-| Data Constraints | [added/modified/removed] | [notes] |
+## 8. Assumptions and Open Questions
 
-### 3.2 Affected Design Areas
+### 8.1 Assumptions
 
-| Design Area | Change Type | Notes |
-|-------------|-------------|-------|
-| Data Model | [added/modified/removed] | [notes] |
-| Interface Design | [added/modified/removed] | [notes] |
+- [Assumption and why it is safe, or write "None"]
 
-### 3.3 Breaking Changes
+### 8.2 Open Questions
 
-- **Breaking change**: [yes/no]
-- **Impact**: [affected users, APIs, data, or operations]
-- **Migration**: [migration path if needed]
+- [ ] [Question that would affect spec, design, implementation boundaries, or acceptance, or write "None"]
 
-### 3.4 Dependencies
+## 9. Impact Preview
 
-- [External team, system, release, or data dependency]
-
-## 4. New DFX Constraints
-
-| Category | Constraint | Priority |
-|----------|------------|----------|
-| Performance | [latency/throughput/resource limit] | [P0/P1/P2] |
-| Reliability | [availability/fallback/data consistency] | [P0/P1/P2] |
-| Security | [auth/data protection/audit] | [P0/P1/P2] |
-
-## 5. Milestones
-
-| Milestone | Deliverable | Done Means |
-|-----------|-------------|------------|
-| M1 | [deliverable] | [verifiable completion signal] |
+| Area | Expected Impact | Notes |
+|------|-----------------|-------|
+| Spec behavior | [added/modified/removed/none] | [Notes] |
+| Design areas | [UI/API/data/model/workflow/none] | [Notes] |
+| DFX constraints | [performance/reliability/security/compatibility/none] | [Notes] |
+| Breaking changes | [yes/no/unknown] | [Impact and migration note] |

@@ -77,14 +77,14 @@ const stageDefinitions = {
     name: "Requirement clarification",
     file: "proposal.md",
     command: "/metaspec.proposal",
-    objective: "Clarify why, what changes, impact, non-goals, acceptance criteria, and DFX constraints.",
+    objective: "Discover the real need behind the requested change, then clarify actor/workflow, success criteria, scope boundary, non-goals, confirmed decisions, and impact.",
     inputs: ["full spec.md if present", "full design.md if present", "service-context.md if present", "existing documents in the current change"],
     nextName: "Spec delta",
-    artifactRule: "Describe only why, what changes, impact, DFX constraints, and non-goals. Do not include implementation details.",
+    artifactRule: "Write proposal.md as a real-need discovery artifact. It must distinguish `Requested Change vs Real Need`, define problem statement, actor/scenario, success criteria, scope boundary, non-goals, confirmed decisions, assumptions/open questions, and impact preview. Do not include implementation details.",
     contextRule: "If full spec.md/design.md is missing, clarification may continue, but proposal.md must record the missing-baseline risk.",
-    clarificationFocus: "business context, scope, non-goals, priority, acceptance criteria, impact, and DFX constraints",
+    clarificationFocus: "the real workflow problem, actor, success signal, scope boundary, non-goals, existing behavior to preserve, input interaction semantics, acceptance criteria, impact, and DFX constraints",
     generationFocus: "the proposal points to generate",
-    completionFocus: "scope, non-goals, acceptance criteria, and breaking changes"
+    completionFocus: "real need, scope boundary, non-goals, confirmed decisions, acceptance criteria, open questions, and breaking changes"
   },
   "delta-spec": {
     key: "delta-spec",
@@ -249,19 +249,24 @@ ${sharedPathRules()}
 }
 
 function sharedClarificationGate(stage = null) {
-  const stageSpecific =
-    stage?.key === "validation"
-      ? `\nValidation-specific rules:\n1. Check proposal, delta-spec, delta-design, and tasks for unconfirmed decisions, agent-inferred decisions, or pending questions.\n2. If any unconfirmed decision affects scope, business rules, data model, migration, compatibility, or test executability, the conclusion must be "needs revision before implementation", not "implementation may start".\n3. Check whether the current worktree has unrelated dirty files. If it does, record it as a pre-implementation risk and state whether it blocks implementation.`
-      : "";
+  let stageSpecific = "";
+  if (stage?.key === "proposal") {
+    stageSpecific = `\nProposal-specific rules:\n1. Treat surface requests such as add a field, add a button, support search, optimize, improve, or make faster as proposed solutions until the user confirms the workflow problem, affected actor, success signal, scope boundary, and non-goals.\n2. Do not write implementation choices in proposal.md. Proposal owns why, what, boundaries, confirmation status, and impact preview only.\n3. The user can confirm proposal.md only when the real problem, boundaries, non-goals, and assumptions/open questions are explicit.`;
+  }
+  if (stage?.key === "validation") {
+    stageSpecific = `\nValidation-specific rules:\n1. Check proposal, delta-spec, delta-design, and tasks for unconfirmed decisions, agent-inferred decisions, or pending questions.\n2. If any unconfirmed decision affects scope, business rules, data model, migration, compatibility, or test executability, the conclusion must be "needs revision before implementation", not "implementation may start".\n3. Check whether the current worktree has unrelated dirty files. If it does, record it as a pre-implementation risk and state whether it blocks implementation.`;
+  }
 
   return `Clarification guardrails:
 1. If the requirement or stage inputs contain vague language such as improve, optimize, clean up, better, support, convenient, simple, flexible, smart, automatic, configurable, compatible, refactor, or faster, ask at least one clarification question before generation approval.
-2. Explicitly clarify or obtain user confirmation for high-impact decisions: business-rule boundaries, failure behavior, data model/schema, migration, roles and permissions, external APIs, compatibility, concurrency/consistency, test environment, acceptance criteria, and non-goals.
-3. Generation approval must list "confirmed decisions" and "agent-inferred/proposed decisions". If an agent inference affects implementation boundaries, ask the user to confirm it before writing the artifact.
-4. Stage artifacts must include or preserve a decision ledger. Mark each key decision source: user-confirmed, existing spec/design, code fact, or agent inference.
-5. Do not write pending questions as "none" unless you checked vague language, high-impact decisions, full baseline docs, and current change docs.
-6. If the user only says "confirm/next", that confirms the displayed artifact only; it does not confirm new agent assumptions.
-7. If there are more than 3 questions, ask the 1-3 questions most likely to change scope or data model first, then continue clarification in another turn.${stageSpecific}`;
+2. At proposal stage, treat a surface solution request as unconfirmed until the real workflow problem, affected actor, success signal, scope boundary, and non-goals are clear.
+3. Explicitly clarify or obtain user confirmation for high-impact decisions: business-rule boundaries, failure behavior, data model/schema, migration, roles and permissions, external APIs, compatibility, concurrency/consistency, test environment, acceptance criteria, and non-goals.
+4. For new search, filter, sort, form input, API parameter, or configuration behavior, explicitly clarify how it interacts with existing inputs: AND/OR semantics, priority, mutual exclusion, empty value behavior, no-result behavior, exact vs partial matching, format normalization, and compatibility with existing behavior.
+5. Generation approval must list "confirmed decisions" and "agent-inferred/proposed decisions". If an agent inference affects implementation boundaries, ask the user to confirm it before writing the artifact.
+6. Stage artifacts must include or preserve a decision ledger. Mark each key decision source: user-confirmed, existing spec/design, code fact, or agent inference.
+7. Do not write pending questions as "none" unless you checked vague language, high-impact decisions, input interaction semantics, full baseline docs, and current change docs.
+8. If the user only says "confirm/next", that confirms the displayed artifact only; it does not confirm new agent assumptions.
+9. If there are more than 3 questions, ask the 1-3 questions most likely to change scope or data model first, then continue clarification in another turn.${stageSpecific}`;
 }
 
 function sharedDisplayRules() {

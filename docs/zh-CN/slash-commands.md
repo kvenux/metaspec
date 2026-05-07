@@ -28,7 +28,7 @@ The main command must:
 
 | Stage | Command | Artifact | Goal |
 |------|---------|----------|------|
-| 1 | `/metaspec.proposal` | `proposal.md` | Clarify Why, What, Impact, non-goals, acceptance criteria, and DFX constraints. |
+| 1 | `/metaspec.proposal` | `proposal.md` | Discover the real need behind the requested change, then clarify scope boundary, non-goals, confirmed decisions, and acceptance criteria. |
 | 2 | `/metaspec.delta-spec` | `delta-spec.md` | Convert the proposal into verifiable business-rule deltas. |
 | 3 | `/metaspec.delta-design` | `delta-design.md` | Design an implementation approach that covers the spec deltas. |
 | 4 | `/metaspec.tasks` | `tasks.md` | Break design decisions into executable and verifiable tasks. |
